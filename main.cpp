@@ -1,82 +1,101 @@
-#include <sfml/Graphics.hpp>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 
 int main() {
-    double massEarth = 5.972e24; // Mass of Earth in kg
-    double radiusEarth = 6.378e6; // Radius of Earth in m
+    const long double massEarth = 5.972e24; // kg
+    const long double radiusEarth = 6.378e6; // meters
 
-    double massMoon = 7.347e22; // Mass of Moon in kg
-    double radiusMoon = 1.7374e6; // Radius of Moon in m
+    const long double massMoon = 7.347e22; // kg
+    const long double radiusMoon = 1.7374e6; // meters
 
-    double d = 3.850006e8 - radiusEarth - radiusMoon;
+    const long double d = 3.844006e8 - radiusEarth - radiusMoon; // Distance between Earth & Moon minus their radii
+    const long double G = 6.674e-11; // gravitational constant
 
-    double G = 6.674e-11; // gravitational constant
+    const long double enginePower = 45.0e9; // watts
 
-    double enginePower = 1.0e12; // engine power in watts
+    long double rocketTotalMass = 1.0e6; // kg
+    long double rocketDryMass = 1.35e5; // kg
+    long double initialFuelMass = rocketTotalMass - rocketDryMass;
+    long double currentFuelMass = initialFuelMass;
+    long double currentRocketMass = currentFuelMass + rocketDryMass;
 
-    double rocketTotalMass = 1.0e6; // rocket mass in kg
-    double rocketDryMass = 2.0e5; // dry mass in kg
-    double initialFuelMass = rocketTotalMass - rocketDryMass; // fuel mass in kg
-    double currentFuelMass = initialFuelMass; // current fuel mass in kg
-    double currnetRocketMass = currentFuelMass + rocketDryMass;
+    long double lowerLimitEFMI = 500;
+    long double higherLimitEFMI = 15000;
 
-    double lowerLimitEFMI = 2; // engine fuel mass input in kg/s
-    double higherLimitEFMI = 20000;
+    long double currentEFMI = 8000; // Initial fuel burn rate
 
-    double currentEFMI = 0; // ! engine fuel mass input
+    long double x = 0; // Distance from Earth
+    long double rocketVelocity = 0;
+    long double acceleration = 0;
+    long double timeExpended = 0;
 
-    double x = 0; // how far the rocket is from earth
+    long double exhaustVelocity = 0;
+    long double thrust = 0;
+    long double netForce = 0;
 
-    bool engineON = true;
+    long double timeStep = 0.001; // in seconds
 
-    double exhaustVelocity = 0;
-    double thrust = 0; // rocket thrust 
+    for (int i = 0; i <= int(90 / timeStep); i++) { // Run for 5 minutes
+        if (currentFuelMass > 0) {
+            // calculating thrust
+            thrust = sqrt(2 * enginePower * currentEFMI);
 
-    double timeStep = 0.1;
+            // Burn fuel
+            currentFuelMass -= currentEFMI * timeStep;
+            if (currentFuelMass < 0) {
+                currentFuelMass = 0;
+                currentEFMI = 0; // Stop engine if fuel runs out
+                thrust = 0;
+            }
 
-    double netForce = 0;
+            // Update rocket mass
+            currentRocketMass = currentFuelMass + rocketDryMass;
+        }
 
+        // Correct net force calculation
+        netForce = thrust
+            - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2))
+            + ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2));
 
-    if (engineON && currentEFMI != 0) {
-        // exhaustVelocity = sqrt(2 * enginePower / (currentEFMI));
-        // thrust = 2 * enginePower / exhaustVelocity;
-        // currentFuelMass -= currentEFMI;
-        // currnetRocketMass = currentFuelMass + rocketDryMass;
+        // Acceleration update
+        acceleration = netForce / currentRocketMass;
 
-        // netForce = thrust - ((G * massEarth * currnetRocketMass) / pow((radiusEarth + x), 2)) + ((G * massMoon * currnetRocketMass) / pow((radiusMoon + d - x), 2));
-
-
-        // std::cout << netForce << std::endl;
-        // std::cout << netForce / currnetRocketMass << std::endl;
-        // std::cout << (initialFuelMass / currentEFMI) / 60 << std::endl;
-    }
-
-    currentEFMI = 1000;
-    currentEFMI = (double)currentEFMI * timeStep;
-
-    double rocketVelocity = 0;
-    double acceleration = 0;
-    double timeExpended = 0;
-    double distanceInTimeStep = 0;
-
-    // std::cout << currentEFMI << std::endl;
-    for (double i = 0;i <= 60;i += timeStep) {
-        timeExpended += timeStep;
-        exhaustVelocity = (double)sqrt(2 * (enginePower * timeStep) / currentEFMI);
-        thrust = (double)2 * (enginePower * timeStep) / exhaustVelocity;
-        currentFuelMass -= (double)currentEFMI;
-        currnetRocketMass = (double)currentFuelMass + rocketDryMass;
-
-        netForce = (double)thrust - ((G * massEarth * currnetRocketMass) / pow((radiusEarth + x), 2)) * timeStep + ((G * massMoon * currnetRocketMass) / pow((radiusMoon + d - x), 2)) * timeStep;
-        acceleration = netForce / currnetRocketMass;
-        std::cout << "Exhaust velocity: " << exhaustVelocity << " Thrust: " << thrust << " CurrentFuelMass: " << currentFuelMass << " CurrentRocketMass: " << currnetRocketMass << " NetForce: " << netForce << " Acceleration: " << acceleration << std::endl;
-
-        // std::cout << netForce << " " << netForce / currnetRocketMass << std::endl;
-        distanceInTimeStep = rocketVelocity * timeStep + (1 / 2) * acceleration * pow(acceleration, 2);
+        // Correct motion equations
+        long double distanceInTimeStep = rocketVelocity * timeStep + 0.5 * acceleration * pow(timeStep, 2);
+        rocketVelocity += acceleration * timeStep;
         x += distanceInTimeStep;
-        rocketVelocity = rocketVelocity + acceleration * timeStep;
+        timeExpended += 1;
     }
+    timeExpended *= timeStep;
 
-    std::cout << "currentFuelMass: " << currentFuelMass << " rocketVelocity: " << rocketVelocity << " distanceTravelled: " << x << "m timeExpended: " << timeExpended << std::endl;
+    std::cout << "------------------------------------------------Stage 1 Complete----------------------------------------------" << std::endl;
+    // std::cout << "Stage 1 Complete" << std::endl;
+    std::cout << "Time: " << timeExpended << " seconds\n";
+    std::cout << "Final velocity: " << rocketVelocity << " m/s\n";
+    std::cout << "Distance traveled: " << x / 1e3 << " km\n";
+    std::cout << "Fuel consumed: " << initialFuelMass - currentFuelMass << " kg " << "Fuel remaining: " << currentFuelMass << " kg\n";
+    // std::cout << "Exhaust velocity: " << exhaustVelocity << " m/s\n";
+    // std::cout << "Final thrust: " << thrust << " N\n";
+    std::cout << "------------------------------------------------Stage 2 Complete----------------------------------------------" << std::endl;
+
+    // stage 2 cruise
+    double cruiseDuration = 3600;
+    double cruiseVelocity = rocketVelocity;
+
+    double distanceCruised = cruiseVelocity * cruiseDuration;
+    // std::cout << "Stage 2 Complete" << std::endl;
+    std::cout << "Time: " << cruiseDuration << " seconds\n";
+    std::cout << "Cruise velocity: " << cruiseVelocity << " m/s\n";
+    std::cout << "Distance traveled: " << distanceCruised / 1e3 << " km\n";
+    std::cout << "Total Distance traveled: " << (x + distanceCruised) / 1e3 << " km\n";
+
+    std::cout << "------------------------------------------------Stage 3 Complete----------------------------------------------" << std::endl;
+
+
+
+
+
+    std::cout << d / distanceCruised;
+
+    return 0;
 }
