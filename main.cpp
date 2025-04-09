@@ -2,6 +2,8 @@
 #include <cmath>
 #include <sfml/Graphics.hpp>
 
+// std::setprecision(10); // Set precision for output
+
 int main() {
     const long double massEarth = 5.972e24; // kg
     const long double radiusEarth = 6.378e6; // meters
@@ -39,23 +41,72 @@ int main() {
 
     long double currentEFMI = 3500; // Initial fuel burn rate
 
-    sf::RenderWindow window(sf::VideoMode(1280, 720), "Rocket Simulation");
+
+
+    sf::Font font;
+    if (font.loadFromFile("assets/fonts/HomeVideo-BLG6G.ttf")) { // loading font
+        std::cout << "font loaded" << std::endl;
+    }
+    else {
+        std::cout << "font not loaded" << std::endl;
+    }
+
+    sf::Text rocketSpeedText;
+    sf::Text rocketAccelerationText;
+    sf::Text rocketFuelText;
+    sf::Text rocketTimeText;
+    sf::Text rocketDistanceText;
+
+    sf::Text note;
+
+    note.setFont(font);
+    note.setCharacterSize(36);
+    note.setFillColor(sf::Color::Red);
+    note.setPosition(50, 300); // Position of the text
+
+    rocketSpeedText.setFont(font);
+    rocketSpeedText.setCharacterSize(36);
+    rocketSpeedText.setFillColor(sf::Color::Black);
+    rocketSpeedText.setPosition(10, 10); // Position of the text
+
+    rocketAccelerationText.setFont(font);
+    rocketAccelerationText.setCharacterSize(36);
+    rocketAccelerationText.setFillColor(sf::Color::Black);
+    rocketAccelerationText.setPosition(10, 40); // Position of the text
+
+    rocketFuelText.setFont(font);
+    rocketFuelText.setCharacterSize(36);
+    rocketFuelText.setFillColor(sf::Color::Black);
+    rocketFuelText.setPosition(10, 70); // Position of the text
+
+    rocketTimeText.setFont(font);
+    rocketTimeText.setCharacterSize(36);
+    rocketTimeText.setFillColor(sf::Color::Black);
+    rocketTimeText.setPosition(10, 100); // Position of the text
+
+    rocketDistanceText.setFont(font);
+    rocketDistanceText.setCharacterSize(36);
+    rocketDistanceText.setFillColor(sf::Color::Black);
+    rocketDistanceText.setPosition(10, 130); // Position of the text
+
+    sf::RenderWindow window(sf::VideoMode(1800, 1000), "simulation", sf::Style::Default);
     // sf::CircleShape earth(50); // Earth representation
     // earth.setFillColor(sf::Color::Blue);
     // earth.setPosition(400, 300); // Position of Earth
     sf::RectangleShape rocket(sf::Vector2f(10, 50)); // Rocket representation
     rocket.setFillColor(sf::Color::Red);
-    rocket.setPosition(1280 / 2 - 10 / 2, 720 - 50); // Initial position of the rocket
+    rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, window.getSize().y - rocket.getSize().y); // Initial position of the rocket
 
     // while (window.isOpen()) {
 
-        // Clear the window
+    // Clear the window
 
-        // Draw the Earth and rocket
-        // window.draw(earth);
+    // Draw the Earth and rocket
+    // window.draw(earth);
 
-        // Display the contents of the window
-
+    // Display the contents of the window
+    window.display();
+    sf::sleep(sf::seconds(10));
 
     for (int i = 0; i <= int(210 / timeStep); i++) { // Run for 5 minutes
         sf::Event event;
@@ -95,12 +146,25 @@ int main() {
         x += distanceInTimeStep;
         timeExpended += 1;
 
-        if (i % 100 == 0) {
+        if (i % 10 == 0 && window.isOpen()) {
             // Update rocket position for visualization
-            window.clear(sf::Color::White);
+            window.clear(sf::Color::Cyan);
 
-            rocket.setPosition(1280 / 2 - 10 / 2, 670 - (x / d) * 670); // Scale position based on distance to Earth
+            rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / 1020000))); // Initial position of the rocket
+            rocketSpeedText.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
+            rocketAccelerationText.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
+            rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
+            rocketTimeText.setString("Rocket Time: " + std::to_string(timeExpended * timeStep) + " seconds");
+            rocketDistanceText.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
 
+            note.setString("Liftoff!");
+            window.draw(note); // Draw the note text
+
+            window.draw(rocketSpeedText); // Draw the rocket speed text
+            window.draw(rocketAccelerationText); // Draw the rocket acceleration text
+            window.draw(rocketFuelText); // Draw the rocket fuel text
+            window.draw(rocketTimeText); // Draw the rocket time text
+            window.draw(rocketDistanceText); // Draw the rocket distance text
             window.draw(rocket);
 
             window.display();
@@ -146,16 +210,29 @@ int main() {
         distanceCruised += distanceInTimeStep;
         timeExpended += 1;
 
-        // if (i % 1 == 0) {
-            // Update rocket position for visualization
-        window.clear(sf::Color::White);
+        // Update rocket position for visualization
+        if (window.isOpen()) {
+            window.clear(sf::Color::Cyan);
 
-        rocket.setPosition(1280 / 2 - 10 / 2, 670 - (x / d) * 670); // Scale position based on distance to Earth
+            rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / d))); // Initial position of the rocket
+            rocketSpeedText.setString("Rocket Speed: " + std::to_string(cruiseVelocity) + " m/s");
+            rocketAccelerationText.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
+            rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
+            rocketTimeText.setString("Rocket Time: " + std::to_string(timeExpended * timeStep) + " seconds");
+            rocketDistanceText.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
 
-        window.draw(rocket);
+            note.setString("Cruiseing!");
+            window.draw(note); // Draw the note text
 
-        window.display();
-        // }
+            window.draw(rocketSpeedText); // Draw the rocket speed text
+            window.draw(rocketAccelerationText); // Draw the rocket acceleration text
+            window.draw(rocketFuelText); // Draw the rocket fuel text
+            window.draw(rocketTimeText); // Draw the rocket time text
+            window.draw(rocketDistanceText); // Draw the rocket distance text
+            window.draw(rocket);
+
+            window.display();
+        }
 
     }
     // std::cout << acceleration << std::endl;
@@ -172,6 +249,7 @@ int main() {
 
 
     // ! apply brakesssssssssssssssssssssssssssssssssssssssssss
+    int totalDistanceCovered = x;
 
     currentEFMI = 550; // determine this
     double decelerationDuration = 120; // in seconds
@@ -233,12 +311,24 @@ int main() {
         // if (count % 60 == 0) {
             // std::cout << "Distance left: " << (d - x) / 1e3 << " Velocity: " << rocketVelocity << " acceleration: " << acceleration << std::endl;
         // }
-        if (i % 100 == 0) {
-            // Update rocket position for visualization
-            window.clear(sf::Color::White);
+        if (i % 10 == 0 && window.isOpen()) {
+            window.clear(sf::Color::Cyan);
 
-            rocket.setPosition(1280 / 2 - 10 / 2, 670 - (x / d) * 670); // Scale position based on distance to Earth
+            rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
+            rocketSpeedText.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
+            rocketAccelerationText.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
+            rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
+            rocketTimeText.setString("Rocket Time: " + std::to_string(timeExpended * timeStep) + " seconds");
+            rocketDistanceText.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
 
+            note.setString("decelerating!");
+            window.draw(note); // Draw the note text
+
+            window.draw(rocketSpeedText); // Draw the rocket speed text
+            window.draw(rocketAccelerationText); // Draw the rocket acceleration text
+            window.draw(rocketFuelText); // Draw the rocket fuel text
+            window.draw(rocketTimeText); // Draw the rocket time text
+            window.draw(rocketDistanceText); // Draw the rocket distance text
             window.draw(rocket);
 
             window.display();
@@ -259,6 +349,7 @@ int main() {
 
     // std::cout << "-------------------------------------------------------------------------------------------------------------" << std::endl;
 
+    totalDistanceCovered = x;
 
     currentEFMI = 370; // determine this
     decelerationDuration = 4.4; // in seconds
@@ -311,22 +402,29 @@ int main() {
         distanceDecelerated += distanceInTimeStep;
         timeExpended += 1;
 
-        count++;
-        if (count % 100 == 0) {
-            // std::cout << "Distance left: " << (d - x) / 1e3 << " Velocity: " << rocketVelocity << " acceleration: " << acceleration << std::endl;
-        }
-        if (i % 100 == 0) {
-            // Update rocket position for visualization
-            window.clear(sf::Color::White);
 
-            rocket.setPosition(1280 / 2 - 10 / 2, 670 - (x / d) * 670); // Scale position based on distance to Earth
+        if (window.isOpen()) {
+            window.clear(sf::Color::Cyan);
 
+            rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
+            rocketSpeedText.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
+            rocketAccelerationText.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
+            rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
+            rocketTimeText.setString("Rocket Time: " + std::to_string(timeExpended * timeStep) + " seconds");
+            rocketDistanceText.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
+
+            note.setString("Landing!");
+            window.draw(note); // Draw the note text
+
+            window.draw(rocketSpeedText); // Draw the rocket speed text
+            window.draw(rocketAccelerationText); // Draw the rocket acceleration text
+            window.draw(rocketFuelText); // Draw the rocket fuel text
+            window.draw(rocketTimeText); // Draw the rocket time text
+            window.draw(rocketDistanceText); // Draw the rocket distance text
             window.draw(rocket);
+            sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
 
             window.display();
-        }
-        if (i == int(decelerationDuration / timeStep)) {
-            window.close();
         }
     }
 
@@ -345,6 +443,11 @@ int main() {
     std::cout << "Fuel consumed: " << initialFuelMass - currentFuelMass << " kg " << "Fuel remaining: " << currentFuelMass << " kg\n";
 
     std::cout << "Distance Left: " << (d - x) / 1e3 << "km" << std::endl;;
+
+    if (window.isOpen()) {
+        sf::sleep(sf::seconds(5)); // Sleep for 5 seconds to allow the user to see the final state
+        window.close();
+    }
 
     return 0;
 }
