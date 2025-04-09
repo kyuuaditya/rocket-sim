@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <sfml/Graphics.hpp>
 
 int main() {
     const long double massEarth = 5.972e24; // kg
@@ -37,7 +38,33 @@ int main() {
     long double timeStep = 0.001; // in seconds
 
     long double currentEFMI = 3500; // Initial fuel burn rate
+
+    sf::RenderWindow window(sf::VideoMode(1280, 720), "Rocket Simulation");
+    // sf::CircleShape earth(50); // Earth representation
+    // earth.setFillColor(sf::Color::Blue);
+    // earth.setPosition(400, 300); // Position of Earth
+    sf::RectangleShape rocket(sf::Vector2f(10, 50)); // Rocket representation
+    rocket.setFillColor(sf::Color::Red);
+    rocket.setPosition(1280 / 2 - 10 / 2, 720 - 50); // Initial position of the rocket
+
+    // while (window.isOpen()) {
+
+        // Clear the window
+
+        // Draw the Earth and rocket
+        // window.draw(earth);
+
+        // Display the contents of the window
+
+
     for (int i = 0; i <= int(210 / timeStep); i++) { // Run for 5 minutes
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
+        // std::cout << i << std::endl;
         if (currentFuelMass > 0) {
             // calculating thrust
             thrust = sqrt(2 * enginePower * currentEFMI);
@@ -67,7 +94,20 @@ int main() {
         rocketVelocity += acceleration * timeStep;
         x += distanceInTimeStep;
         timeExpended += 1;
+
+        if (i % 100 == 0) {
+            // Update rocket position for visualization
+            window.clear(sf::Color::White);
+
+            rocket.setPosition(1280 / 2 - 10 / 2, 670 - (x / d) * 670); // Scale position based on distance to Earth
+
+            window.draw(rocket);
+
+            window.display();
+            // std::cout << i << std::endl;
+        }
     }
+
     timeExpended *= timeStep;
 
     std::cout << "------------------------------------------------Stage 1 Complete----------------------------------------------" << std::endl;
@@ -90,6 +130,12 @@ int main() {
 
     timeExpended = 0;
     for (int i = 0; i < cruiseDuration; i++) { // 30 hours for reference
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
         netForce =
             ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2))
             - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2));
@@ -99,6 +145,18 @@ int main() {
         x += distanceInTimeStep;
         distanceCruised += distanceInTimeStep;
         timeExpended += 1;
+
+        // if (i % 1 == 0) {
+            // Update rocket position for visualization
+        window.clear(sf::Color::White);
+
+        rocket.setPosition(1280 / 2 - 10 / 2, 670 - (x / d) * 670); // Scale position based on distance to Earth
+
+        window.draw(rocket);
+
+        window.display();
+        // }
+
     }
     // std::cout << acceleration << std::endl;
 
@@ -126,6 +184,13 @@ int main() {
 
     int count = 0;
     for (int i = 0; i <= int(decelerationDuration / timeStep); i++) { // Run for 5 minutes
+
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
 
         if (count * timeStep > 120) {
             currentEFMI = 5000; // determine this
@@ -168,6 +233,16 @@ int main() {
         // if (count % 60 == 0) {
             // std::cout << "Distance left: " << (d - x) / 1e3 << " Velocity: " << rocketVelocity << " acceleration: " << acceleration << std::endl;
         // }
+        if (i % 100 == 0) {
+            // Update rocket position for visualization
+            window.clear(sf::Color::White);
+
+            rocket.setPosition(1280 / 2 - 10 / 2, 670 - (x / d) * 670); // Scale position based on distance to Earth
+
+            window.draw(rocket);
+
+            window.display();
+        }
     }
     // timeExpended *= timeStep;
     // std::cout << count << std::endl;
@@ -196,6 +271,13 @@ int main() {
 
     count = 0;
     for (int i = 0; i <= int(decelerationDuration / timeStep); i++) { // Run for 5 minutes
+
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
 
         if (currentFuelMass > 0) {
             // calculating thrust
@@ -232,6 +314,19 @@ int main() {
         count++;
         if (count % 100 == 0) {
             // std::cout << "Distance left: " << (d - x) / 1e3 << " Velocity: " << rocketVelocity << " acceleration: " << acceleration << std::endl;
+        }
+        if (i % 100 == 0) {
+            // Update rocket position for visualization
+            window.clear(sf::Color::White);
+
+            rocket.setPosition(1280 / 2 - 10 / 2, 670 - (x / d) * 670); // Scale position based on distance to Earth
+
+            window.draw(rocket);
+
+            window.display();
+        }
+        if (i == int(decelerationDuration / timeStep)) {
+            window.close();
         }
     }
 
