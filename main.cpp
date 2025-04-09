@@ -182,9 +182,58 @@ int main() {
 
     std::cout << "Distance Left: " << (d - x) / 1e3 << "km" << std::endl;;
 
-    std::cout << "-------------------------------------------------------------------------------------------------------------" << std::endl;
+    // std::cout << "-------------------------------------------------------------------------------------------------------------" << std::endl;
 
 
+    currentEFMI = 370; // determine this
+    decelerationDuration = 4.4; // in seconds
+
+    thrust = 0;
+    netForce = 0;
+    distanceDecelerated = 0;
+    timeStep = 0.001; // in seconds
+    // rocketVelocity = cruiseVelocity; // Reset velocity to cruise velocity
+
+    count = 0;
+    for (int i = 0; i <= int(decelerationDuration / timeStep); i++) { // Run for 5 minutes
+
+        if (currentFuelMass > 0) {
+            // calculating thrust
+            thrust = -sqrt(2 * enginePower * currentEFMI); // Negative thrust for braking
+
+            // Burn fuel
+            currentFuelMass -= currentEFMI * timeStep;
+            if (currentFuelMass < 0) {
+                currentFuelMass = 0;
+                currentEFMI = 0; // Stop engine if fuel runs out
+                thrust = 0;
+            }
+
+            // Update rocket mass
+            currentRocketMass = currentFuelMass + rocketDryMass;
+        }
+
+        // Correct net force calculation
+        netForce = thrust
+            - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2))
+            + ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2));
+
+        // Acceleration update
+        acceleration = netForce / currentRocketMass;
+        // std::cout << acceleration << std::endl;
+
+        // Correct motion equations
+        long double distanceInTimeStep = rocketVelocity * timeStep + 0.5 * acceleration * pow(timeStep, 2);
+        rocketVelocity += acceleration * timeStep;
+        x += distanceInTimeStep;
+        distanceDecelerated += distanceInTimeStep;
+        timeExpended += 1;
+
+        count++;
+        if (count % 100 == 0) {
+            // std::cout << "Distance left: " << (d - x) / 1e3 << " Velocity: " << rocketVelocity << " acceleration: " << acceleration << std::endl;
+        }
+    }
 
 
 
@@ -194,7 +243,13 @@ int main() {
 
 
     std::cout << "------------------------------------------------Stage 4 Complete----------------------------------------------" << std::endl;
+    std::cout << "Time: " << decelerationDuration << " seconds\n";
+    std::cout << "Cruise velocity: " << rocketVelocity << " m/s\n";
+    std::cout << "Distance traveled: " << distanceDecelerated / 1e3 << " km\n";
+    std::cout << "Total Distance traveled: " << (x) / 1e3 << " km\n";
+    std::cout << "Fuel consumed: " << initialFuelMass - currentFuelMass << " kg " << "Fuel remaining: " << currentFuelMass << " kg\n";
 
+    std::cout << "Distance Left: " << (d - x) / 1e3 << "km" << std::endl;;
 
     return 0;
 }
