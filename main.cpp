@@ -15,12 +15,16 @@ int main() {
 
     const long double massMoon = 7.347e22; // kg
     const long double radiusMoon = 1.7374e6; // meters
+    // const long double massMoon = 6.94767309e23; // kg
+    // const long double radiusMoon = 3.3895e6; // meters
 
     const long double d = 3.844006e8 - radiusEarth - radiusMoon; // Distance between Earth & Moon minus their radii
+    // const long double d = 2.25e11 - radiusEarth - radiusMoon; // Distance between Earth & Moon minus their radii
+
     const long double G = 6.674e-11; // gravitational constant
     const long double S = 1.496e11; // distance from earth to sun (centres)
 
-    const long double enginePower = 220.0e9; // watts
+    const long double enginePower = 1.0e12; // watts
 
     long double rocketTotalMass = 1.0e6; // kg
     long double rocketDryMass = 1.35e5; // kg
@@ -95,9 +99,10 @@ int main() {
     rocketDistanceText.setFillColor(sf::Color::Black);
     rocketDistanceText.setPosition(10, 130); // Position of the text
 
-    sf::RenderWindow window(sf::VideoMode(1920, 1080), "simulation", sf::Style::Default);
-    if (visual)
-        window.close();
+    sf::RenderWindow window(sf::VideoMode(1920, 1080), "simulation", sf::Style::Fullscreen);
+    // if (!visual) {
+    //     window.close();
+    // }
     // sf::CircleShape earth(50); // Earth representation
     // earth.setFillColor(sf::Color::Blue);
     // earth.setPosition(400, 300); // Position of Earth
@@ -119,7 +124,7 @@ int main() {
     int count = 0;
 
     // for (int i = 0; i <= int(210 / timeStep); i++) { // Run for 5 minutes
-    while (rocketVelocity < 13000) { // Run for 5 minutes
+    while (rocketVelocity < 20000) { // Run for 5 minutes
 
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -147,12 +152,12 @@ int main() {
         // Correct net force calculation
         netForce = thrust
             - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2))
-            + ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2))
-            - ((G * massSun * currentRocketMass) / pow((S + x + radiusEarth), 2));
+            + ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2));
+        // -((G * massSun * currentRocketMass) / pow((S + x + radiusEarth), 2))
 
-        // Acceleration update
+            // Acceleration update
         acceleration = netForce / currentRocketMass;
-        if (acceleration >= 50) {
+        if (acceleration >= 50 && currentEFMI > 10) {
             currentEFMI -= 10;
         }
 
@@ -164,11 +169,11 @@ int main() {
         count++;
 
         if (visual) {
-            if (count % 50 == 0 && window.isOpen()) {
+            if (count % 20 == 0 && window.isOpen()) {
                 // Update rocket position for visualization
                 window.clear(sf::Color::Cyan);
 
-                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / 1020000))); // Initial position of the rocket
+                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / 2200000))); // Initial position of the rocket
                 rocketSpeedText.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
                 rocketAccelerationText.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
                 rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
@@ -212,10 +217,10 @@ int main() {
     timeStep = 1;
 
     double distanceToCruise = d - x; // Distance to cruise
-
+    count = 0;
     timeExpended = 0;
     // for (int i = 0; i < cruiseDuration; i++) { // 30 hours for reference
-    while (distanceCruised + 300 * 1e3 < distanceToCruise && cruiseVelocity > 0) { // 30 hours for reference
+    while (distanceCruised + 10000 * 1e3 < distanceToCruise && cruiseVelocity > 0) { // 30 hours for reference
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
@@ -231,10 +236,16 @@ int main() {
         x += distanceInTimeStep;
         distanceCruised += distanceInTimeStep;
         timeExpended += 1;
+        count++;
 
+        // if (count % 10 == 0) {
+            // std::cout << acceleration << std::endl;
+            // std::cout << "Distance left: " << (d - x) / 1e3 << " Velocity: " << cruiseVelocity << " acceleration: " << acceleration << " EMFI: " << currentEFMI << " required: " << (pow(cruiseVelocity, 2) - pow(100, 2)) / (2 * (d - x)) << std::endl;
+        visual = true;
         if (visual) {
             // Update rocket position for visualization
             if (window.isOpen()) {
+                std::cout << "works" << std::endl;
                 window.clear(sf::Color::Cyan);
 
                 rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / d))); // Initial position of the rocket
@@ -256,10 +267,12 @@ int main() {
 
                 window.display();
             }
+            // }
         }
 
     }
     // std::cout << acceleration << std::endl;
+    visual = false;
 
     std::cout << "------------------------------------------------Stage 2 Complete----------------------------------------------" << std::endl;
     // std::cout << "Stage 2 Complete" << std::endl;
@@ -336,7 +349,7 @@ int main() {
         timeExpended += 1;
 
         if (count % 100 == 0) {
-            if (-(pow(rocketVelocity, 2) - pow(10, 2)) / (2 * (distancetoDecelerate - 1 * 1e3 - distanceDecelerated)) < acceleration) { // 10 meter per second is the goal velocity
+            if (-(pow(rocketVelocity, 2) - pow(100, 2)) / (2 * (distancetoDecelerate - 1 * 1e3 - distanceDecelerated)) < acceleration) { // 10 meter per second is the goal velocity
                 currentEFMI += 10;
             }
             else {
@@ -356,28 +369,28 @@ int main() {
         // }
 
         if (visual) {
-            if (count % 10 == 0 && window.isOpen()) {
-                window.clear(sf::Color::Cyan);
+            // if (count % 10 == 0 && window.isOpen()) {
+            window.clear(sf::Color::Cyan);
 
-                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
-                rocketSpeedText.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
-                rocketAccelerationText.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
-                rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
-                rocketTimeText.setString("Rocket Time: " + std::to_string(timeExpended * timeStep) + " seconds");
-                rocketDistanceText.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
+            rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
+            rocketSpeedText.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
+            rocketAccelerationText.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
+            rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
+            rocketTimeText.setString("Rocket Time: " + std::to_string(timeExpended * timeStep) + " seconds");
+            rocketDistanceText.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
 
-                note.setString("decelerating!");
-                window.draw(note); // Draw the note text
+            note.setString("decelerating!");
+            window.draw(note); // Draw the note text
 
-                window.draw(rocketSpeedText); // Draw the rocket speed text
-                window.draw(rocketAccelerationText); // Draw the rocket acceleration text
-                window.draw(rocketFuelText); // Draw the rocket fuel text
-                window.draw(rocketTimeText); // Draw the rocket time text
-                window.draw(rocketDistanceText); // Draw the rocket distance text
-                window.draw(rocket);
+            window.draw(rocketSpeedText); // Draw the rocket speed text
+            window.draw(rocketAccelerationText); // Draw the rocket acceleration text
+            window.draw(rocketFuelText); // Draw the rocket fuel text
+            window.draw(rocketTimeText); // Draw the rocket time text
+            window.draw(rocketDistanceText); // Draw the rocket distance text
+            window.draw(rocket);
 
-                window.display();
-            }
+            window.display();
+            // }
         }
     }
     timeExpended *= timeStep;
@@ -397,17 +410,19 @@ int main() {
 
     totalDistanceCovered = x;
 
-    currentEFMI = 370; // determine this
-    decelerationDuration = 4.4; // in seconds
+    currentEFMI = 0; // determine this
+    decelerationDuration = 0.002; // in seconds
 
     thrust = 0;
     netForce = 0;
     distanceDecelerated = 0;
     timeStep = 0.001; // in seconds
+    distancetoDecelerate = d - x;
     // rocketVelocity = cruiseVelocity; // Reset velocity to cruise velocity
-
+    double t1 = 0.01;
     count = 0;
-    for (int i = 0; i <= int(decelerationDuration / timeStep); i++) { // Run for 5 minutes
+    // for (int i = 0; i <= int(decelerationDuration / timeStep); i++) { // Run for 5 minutes
+    while (distancetoDecelerate - t1 > distanceDecelerated) {
 
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -418,6 +433,7 @@ int main() {
 
         if (currentFuelMass > 0) {
             // calculating thrust
+            // std::cout << enginePower << " " << currentEFMI << std::endl;
             thrust = -sqrt(2 * enginePower * currentEFMI); // Negative thrust for braking
 
             // Burn fuel
@@ -431,6 +447,7 @@ int main() {
             // Update rocket mass
             currentRocketMass = currentFuelMass + rocketDryMass;
         }
+        // std::cout << currentRocketMass << std::endl;
 
         // Correct net force calculation
         netForce = thrust
@@ -439,14 +456,42 @@ int main() {
 
         // Acceleration update
         acceleration = netForce / currentRocketMass;
+        // std::cout << thrust << std::endl;
+        // std::cout << ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2)) << std::endl;
+        // std::cout << ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2)) << std::endl;
+
         // std::cout << acceleration << std::endl;
 
         // Correct motion equations
         long double distanceInTimeStep = rocketVelocity * timeStep + 0.5 * acceleration * pow(timeStep, 2);
         rocketVelocity += acceleration * timeStep;
+        // std::cout << distanceInTimeStep << std::endl;
         x += distanceInTimeStep;
+        // std::cout << x << std::endl;
+
         distanceDecelerated += distanceInTimeStep;
         timeExpended += 1;
+
+        if (count % 100 == 0) {
+
+            if (-(pow(rocketVelocity, 2)) / (2 * (distancetoDecelerate - t1 - distanceDecelerated)) < acceleration) { // 10 meter per second is the goal velocity
+                currentEFMI += 1;
+            }
+            else if (currentEFMI >= 6) {
+                currentEFMI -= 2;
+            }
+            // currentEFMI += 10;
+            if (acceleration < -10) {
+                currentEFMI -= 2;
+                // break;
+            }
+        }
+
+        count++;
+        if (count % 1000 == 0) {
+            // std::cout << acceleration << std::endl;
+            // std::cout << "Distance left: " << (d - x) / 1e3 << " Velocity: " << rocketVelocity << " acceleration: " << acceleration << " EMFI: " << currentEFMI << " required: " << pow(rocketVelocity, 2) / (2 * (distancetoDecelerate - t1 - distanceDecelerated)) << std::endl;
+        }
 
         if (visual) {
             if (window.isOpen()) {
@@ -475,7 +520,7 @@ int main() {
         }
     }
 
-
+    timeExpended *= timeStep;
 
 
 
@@ -483,7 +528,7 @@ int main() {
 
 
     std::cout << "------------------------------------------------Stage 4 Complete----------------------------------------------" << std::endl;
-    std::cout << "Time: " << decelerationDuration << " seconds\n";
+    std::cout << "Time: " << timeExpended << " seconds\n";
     std::cout << "Cruise velocity: " << rocketVelocity << " m/s\n";
     std::cout << "Distance traveled: " << distanceDecelerated / 1e3 << " km\n";
     std::cout << "Total Distance traveled: " << (x) / 1e3 << " km\n";
