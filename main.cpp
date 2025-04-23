@@ -66,7 +66,7 @@ int main() {
 
     // Load background texture
     sf::Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("assets/background/123.png")) { // Replace with your image path
+    if (!backgroundTexture.loadFromFile("assets/background/9999c.png")) { // Replace with your image path
         std::cerr << "Failed to load background image." << std::endl;
         return -1;
     }
@@ -270,6 +270,15 @@ int main() {
     std::cout << "Fuel consumed: " << initialFuelMass - currentFuelMass << " kg " << "Fuel remaining: " << currentFuelMass << " kg\n";
 
     // -------------------------------------------------------------- State 2 ----------------------------------------------------------
+    // Load background texture
+    if (!backgroundTexture.loadFromFile("assets/background/123.png")) { // Replace with your image path
+        std::cerr << "Failed to load background image." << std::endl;
+        return -1;
+    }
+
+    // update the sprite for the background
+    backgroundSprite.setTexture(backgroundTexture);
+
     // update rocket sprite
     if (!rocketTexture.loadFromFile("assets/texture/rocket_noflame.png")) { // Replace with your rocket image path
         std::cerr << "Failed to load rocket image" << std::endl;
