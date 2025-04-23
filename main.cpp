@@ -25,10 +25,10 @@ int main() {
     const long double radiusEarth = 6.378e6; // meters
 
     const long double massSun = 1.989e30; // kg
-    const long double radiusSun = 6.9634e8; // meters
+    const long double radiusSun = 6.963e8; // meters
 
     const long double massMoon = 7.347e22; // kg
-    const long double radiusMoon = 1.7374e6; // meters
+    const long double radiusMoon = 1.737e6; // meters
 
     const long double d = 3.844006e8 - radiusEarth - radiusMoon; // Distance between Earth & Moon minus their radii
 
@@ -67,7 +67,7 @@ int main() {
     // Load background texture
     sf::Texture backgroundTexture;
     if (!backgroundTexture.loadFromFile("assets/background/123.png")) { // Replace with your image path
-        std::cerr << "Failed to load background image" << std::endl;
+        std::cerr << "Failed to load background image." << std::endl;
         return -1;
     }
 
@@ -75,6 +75,30 @@ int main() {
     sf::Sprite backgroundSprite;
     backgroundSprite.setTexture(backgroundTexture);
 
+    // Load moon overlay texture
+    sf::Texture moonTexture;
+    if (!moonTexture.loadFromFile("assets/texture/moon_overlay.png")) { // Replace with your image path
+        std::cerr << "Failed to load moon image." << std::endl;
+        return -1;
+    }
+
+    // Create a sprite for the background
+    sf::Sprite moonSprite;
+    moonSprite.setTexture(moonTexture);
+
+    // rocket representation
+    sf::RectangleShape rocket(sf::Vector2f(64, 64)); // Rocket representation
+
+    // Load rocket texture
+    sf::Texture rocketTexture;
+    if (!rocketTexture.loadFromFile("assets/texture/rocket.png")) { // Replace with your rocket image path
+        std::cerr << "Failed to load rocket image" << std::endl;
+        return -1;
+    }
+
+    // Set the texture for the rocket sprite
+    rocket.setTexture(&rocketTexture);
+    rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, window.getSize().y - rocket.getSize().y); // Initial position of the rocket
 
     // load font for displaying statistics
     sf::Font font;
@@ -99,58 +123,54 @@ int main() {
 
     text_rocket_time.setFont(font);
     text_rocket_time.setCharacterSize(36);
-    text_rocket_time.setFillColor(sf::Color::Black);
-    text_rocket_time.setPosition(10, 100); // Position of the text
+    text_rocket_time.setFillColor(sf::Color::White);
+    text_rocket_time.setPosition(10, 10); // Position of the text
 
     text_rocket_velocity.setFont(font);
     text_rocket_velocity.setCharacterSize(36);
-    text_rocket_velocity.setFillColor(sf::Color::Black);
-    text_rocket_velocity.setPosition(10, 10);
+    text_rocket_velocity.setFillColor(sf::Color::White);
+    text_rocket_velocity.setPosition(10, 40);
 
     text_rocket_acceleration.setFont(font);
     text_rocket_acceleration.setCharacterSize(36);
-    text_rocket_acceleration.setFillColor(sf::Color::Black);
-    text_rocket_acceleration.setPosition(10, 40); // Position of the text
+    text_rocket_acceleration.setFillColor(sf::Color::White);
+    text_rocket_acceleration.setPosition(10, 70); // Position of the text
 
     text_rocket_fuel.setFont(font);
     text_rocket_fuel.setCharacterSize(36);
-    text_rocket_fuel.setFillColor(sf::Color::Black);
-    text_rocket_fuel.setPosition(10, 70); // Position of the text
+    text_rocket_fuel.setFillColor(sf::Color::White);
+    text_rocket_fuel.setPosition(10, 100); // Position of the text
 
     text_rocket_displacement.setFont(font);
     text_rocket_displacement.setCharacterSize(36);
-    text_rocket_displacement.setFillColor(sf::Color::Black);
+    text_rocket_displacement.setFillColor(sf::Color::White);
     text_rocket_displacement.setPosition(10, 130); // Position of the text
 
     text_rocket_cfmi.setFont(font);
     text_rocket_cfmi.setCharacterSize(36);
-    text_rocket_cfmi.setFillColor(sf::Color::Black);
+    text_rocket_cfmi.setFillColor(sf::Color::White);
     text_rocket_cfmi.setPosition(10, 160); // Position of the text
 
     text_rocket_exhaust_velocity.setFont(font);
     text_rocket_exhaust_velocity.setCharacterSize(36);
-    text_rocket_exhaust_velocity.setFillColor(sf::Color::Black);
-    text_rocket_exhaust_velocity.setPosition(10, 10);
+    text_rocket_exhaust_velocity.setFillColor(sf::Color::White);
+    text_rocket_exhaust_velocity.setPosition(10, 190);
 
     text_simulation_gravity_earth.setFont(font);
     text_simulation_gravity_earth.setCharacterSize(36);
-    text_simulation_gravity_earth.setFillColor(sf::Color::Black);
-    text_simulation_gravity_earth.setPosition(10, 10);
+    text_simulation_gravity_earth.setFillColor(sf::Color::White);
+    text_simulation_gravity_earth.setPosition(10, 220);
 
     text_simulaiton_graivty_moon.setFont(font);
     text_simulaiton_graivty_moon.setCharacterSize(36);
-    text_simulaiton_graivty_moon.setFillColor(sf::Color::Black);
-    text_simulaiton_graivty_moon.setPosition(10, 10);
+    text_simulaiton_graivty_moon.setFillColor(sf::Color::White);
+    text_simulaiton_graivty_moon.setPosition(10, 250);
 
     text_simulation_phase.setFont(font);
     text_simulation_phase.setCharacterSize(36);
-    text_simulation_phase.setFillColor(sf::Color::Red);
-    text_simulation_phase.setPosition(50, 300);
+    text_simulation_phase.setFillColor(sf::Color::White);
+    text_simulation_phase.setPosition(10, 280);
 
-    // rocket representation
-    sf::RectangleShape rocket(sf::Vector2f(10, 50)); // Rocket representation
-    rocket.setFillColor(sf::Color::Red);
-    rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, window.getSize().y - rocket.getSize().y); // Initial position of the rocket
 
     int count = 0; // counter for simulation steps
     // -------------------------------------------------------------- State 1 ----------------------------------------------------------
@@ -250,6 +270,15 @@ int main() {
     std::cout << "Fuel consumed: " << initialFuelMass - currentFuelMass << " kg " << "Fuel remaining: " << currentFuelMass << " kg\n";
 
     // -------------------------------------------------------------- State 2 ----------------------------------------------------------
+    // update rocket sprite
+    if (!rocketTexture.loadFromFile("assets/texture/rocket_noflame.png")) { // Replace with your rocket image path
+        std::cerr << "Failed to load rocket image" << std::endl;
+        return -1;
+    }
+
+    // Set the texture for the rocket sprite
+    rocket.setTexture(&rocketTexture);
+
     // initialize rocket statistics
     double cruiseVelocity = rocketVelocity;
     double distanceToCruise = d - x; // Distance to cruise
@@ -291,7 +320,7 @@ int main() {
         if (visual) {
             // Update rocket position for visualization
             if (window.isOpen()) {
-                window.clear(sf::Color::Cyan);
+                window.clear();
 
                 rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / d))); // Initial position of the rocket
                 text_rocket_velocity.setString("Rocket Speed: " + std::to_string(cruiseVelocity) + " m/s");
@@ -301,6 +330,7 @@ int main() {
                 text_rocket_displacement.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
                 text_simulation_phase.setString("Cruiseing!");
 
+                window.draw(backgroundSprite); // Draw the background
                 window.draw(text_simulation_phase); // Draw the text_simulation_phase text
                 window.draw(text_rocket_velocity); // Draw the rocket speed text
                 window.draw(text_rocket_acceleration); // Draw the rocket acceleration text
@@ -325,6 +355,15 @@ int main() {
     std::cout << "Total Distance traveled: " << (x) / 1e3 << " km\n";
     std::cout << "Distance Left: " << (d - x) / 1e3 << "km" << std::endl;;
     // -------------------------------------------------------------- State 3 ----------------------------------------------------------
+    // update rocket sprite
+    if (!rocketTexture.loadFromFile("assets/texture/rocket.png")) { // Replace with your rocket image path
+        std::cerr << "Failed to load rocket image" << std::endl;
+        return -1;
+    }
+
+    // Set the texture for the rocket sprite
+    rocket.setTexture(&rocketTexture);
+
     // initialize rocket statistics
     rocketVelocity = cruiseVelocity; // Reset velocity to cruise velocity
     double distancetoDecelerate = d - x; // Distance to decelerate
@@ -397,7 +436,7 @@ int main() {
 
         if (count % 10 == 0) {
             if (visual) {
-                window.clear(sf::Color::Cyan);
+                window.clear();
 
                 rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
                 text_rocket_velocity.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
@@ -408,6 +447,7 @@ int main() {
                 text_rocket_cfmi.setString("Current Fuel Mass Input: " + std::to_string(currentEFMI));
                 text_simulation_phase.setString("decelerating!");
 
+                window.draw(backgroundSprite); // Draw the background
                 window.draw(text_simulation_phase); // Draw the text_simulation_phase text
                 window.draw(text_rocket_velocity); // Draw the rocket speed text
                 window.draw(text_rocket_acceleration); // Draw the rocket acceleration text
@@ -513,6 +553,14 @@ int main() {
             currentEFMI = 0; // Stop engine if fuel runs out
             thrust = 0;
             landing_phrase = false;
+            // update rocket sprite
+            if (!rocketTexture.loadFromFile("assets/texture/rocket_noflame.png")) { // Replace with your rocket image path
+                std::cerr << "Failed to load rocket image" << std::endl;
+                return -1;
+            }
+
+            // Set the texture for the rocket sprite
+            rocket.setTexture(&rocketTexture);
         }
 
         if (count % 1000 == 0) {
@@ -521,7 +569,7 @@ int main() {
 
         if (visual) {
             if (window.isOpen()) {
-                window.clear(sf::Color::Cyan);
+                window.clear();
 
                 rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
                 text_rocket_velocity.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
@@ -532,6 +580,8 @@ int main() {
                 text_rocket_cfmi.setString("Current Fuel Mass Input: " + std::to_string(currentEFMI));
                 text_simulation_phase.setString("Landing!");
 
+                window.draw(backgroundSprite); // Draw the background
+                window.draw(moonSprite); // Draw the moon overlay
                 window.draw(text_simulation_phase); // Draw the text_simulation_phase text
                 window.draw(text_rocket_velocity); // Draw the rocket speed text
                 window.draw(text_rocket_acceleration); // Draw the rocket acceleration text
