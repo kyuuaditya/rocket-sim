@@ -1,1 +1,28 @@
 filename.csv
+    # Executables
+    *.exe
+    *.out
+    
+    # Object files
+    *.o
+    *.obj
+    
+    # Libraries
+    *.lib
+    *.a
+    
+    # Temporary files
+    *~
+    *.swp
+    
+    # Build directories
+    bin/
+    obj/
+    build/
+    
+    # Debug files
+    *.pdb
+    
+    # IDE specific files (adjust as needed)
+    .vscode/
+    .idea/
