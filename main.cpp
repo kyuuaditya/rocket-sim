@@ -2,12 +2,9 @@
 #include <fstream>
 #include <cmath>
 #include <sfml/Graphics.hpp>
-#include <vector>
-#include <string>
-
 
 bool visual = true; // Set to true for visual simulation, false for console output
-bool write = false;
+bool write = true;
 
 // Function to write data to a CSV file
 std::ofstream file("filename.csv"); // Open file in append mode
@@ -51,7 +48,7 @@ int main() {
     const long double enginePower = 4.0e11; // watts
 
     long double rocketTotalMass = 1.0e6; // kg
-    long double rocketDryMass = 3.35e5; // kg
+    long double rocketDryMass = 1.35e5; // kg
     long double initialFuelMass = rocketTotalMass - rocketDryMass;
     long double currentFuelMass = initialFuelMass;
     long double currentRocketMass = currentFuelMass + rocketDryMass;
@@ -154,7 +151,7 @@ int main() {
     int count = 0;
 
     // for (int i = 0; i <= int(210 / timeStep); i++) { // Run for 5 minutes
-    while (rocketVelocity < 16000) { // Run for 5 minutes
+    while (rocketVelocity < 38000) { // Run for 5 minutes
 
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -188,8 +185,8 @@ int main() {
 
             // Acceleration update
         acceleration = netForce / currentRocketMass;
-        if (acceleration >= 50 && currentEFMI > 10) {
-            currentEFMI -= 10;
+        if (acceleration >= 50 && currentEFMI > 1) {
+            currentEFMI -= 1;
         }
 
         // Correct motion equations
@@ -257,7 +254,7 @@ int main() {
     count = 0;
     timeExpended = 0;
     // for (int i = 0; i < cruiseDuration; i++) { // 30 hours for reference
-    while (distanceCruised + 1000 * 1e3 < distanceToCruise && cruiseVelocity > 0) { // 30 hours for reference
+    while (distanceCruised + 12000 * 1e3 < distanceToCruise && cruiseVelocity > 0) { // 30 hours for reference
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
@@ -415,29 +412,31 @@ int main() {
             writeDataToCSV(count / 1000, x, rocketVelocity);
         }
 
-        if (visual) {
-            // if (count % 10 == 0 && window.isOpen()) {
-            window.clear(sf::Color::Cyan);
+        if (count % 10 == 0) {
+            if (visual) {
+                window.clear(sf::Color::Cyan);
 
-            rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
-            rocketSpeedText.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
-            rocketAccelerationText.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
-            rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
-            rocketTimeText.setString("Rocket Time: " + std::to_string(timeExpended * timeStep) + " seconds");
-            rocketDistanceText.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
+                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
+                rocketSpeedText.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
+                rocketAccelerationText.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
+                rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
+                rocketTimeText.setString("Rocket Time: " + std::to_string(timeExpended * timeStep) + " seconds");
+                rocketDistanceText.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
+                fuelMassInput.setString("Current Fuel Mass Input: " + std::to_string(currentEFMI));
 
-            note.setString("decelerating!");
-            window.draw(note); // Draw the note text
+                note.setString("decelerating!");
+                window.draw(note); // Draw the note text
 
-            window.draw(rocketSpeedText); // Draw the rocket speed text
-            window.draw(rocketAccelerationText); // Draw the rocket acceleration text
-            window.draw(rocketFuelText); // Draw the rocket fuel text
-            window.draw(rocketTimeText); // Draw the rocket time text
-            window.draw(rocketDistanceText); // Draw the rocket distance text
-            window.draw(rocket);
+                window.draw(rocketSpeedText); // Draw the rocket speed text
+                window.draw(rocketAccelerationText); // Draw the rocket acceleration text
+                window.draw(rocketFuelText); // Draw the rocket fuel text
+                window.draw(rocketTimeText); // Draw the rocket time text
+                window.draw(rocketDistanceText); // Draw the rocket distance text
+                window.draw(fuelMassInput);
+                window.draw(rocket);
 
-            window.display();
-            // }
+                window.display();
+            }
         }
     }
     timeExpended *= timeStep;
@@ -574,6 +573,7 @@ int main() {
                 rocketFuelText.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
                 rocketTimeText.setString("Rocket Time: " + std::to_string(timeExpended * timeStep) + " seconds");
                 rocketDistanceText.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
+                fuelMassInput.setString("Current Fuel Mass Input: " + std::to_string(currentEFMI));
 
                 note.setString("Landing!");
                 window.draw(note); // Draw the note text
@@ -583,6 +583,7 @@ int main() {
                 window.draw(rocketFuelText); // Draw the rocket fuel text
                 window.draw(rocketTimeText); // Draw the rocket time text
                 window.draw(rocketDistanceText); // Draw the rocket distance text
+                window.draw(fuelMassInput);
                 window.draw(rocket);
                 sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
 
