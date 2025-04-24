@@ -65,7 +65,7 @@ int main() {
     long double timeStep = 0.001; // in seconds
 
     // create the window for the simulation
-    sf::RenderWindow window(sf::VideoMode(1920, 1080), "simulation", sf::Style::Fullscreen);
+    sf::RenderWindow window(sf::VideoMode(1920, 1080), "simulation", sf::Style::None);
 
     // Load background texture
     sf::Texture backgroundTexture;
@@ -180,6 +180,8 @@ int main() {
     double timeEfficiencyConstant = 1; // time efficiency of the simulation
     double fuelEfficiencyConstant = 1; // fuel efficiency of the simulation
     double time_cost_1 = 0;
+
+    // sf::sleep(sf::seconds(10)); // Sleep for 1 second to allow the user to see the initial state
 
     // -------------------------------------------------------------- State 1 ----------------------------------------------------------
     while (rocketVelocity < target_velocity) { // Run for 5 minutes
