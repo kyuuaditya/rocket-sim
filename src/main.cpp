@@ -181,9 +181,11 @@ int main() {
     double fuelEfficiencyConstant = 1; // fuel efficiency of the simulation
     double time_cost_1 = 0;
 
+    bool pause = false;
+
     // sf::sleep(sf::seconds(10)); // Sleep for 1 second to allow the user to see the initial state
 
-    // -------------------------------------------------------------- State 1 ----------------------------------------------------------
+    // -------------------------------------------------------------- Stage 1 ----------------------------------------------------------
     while (rocketVelocity < target_velocity) { // Run for 5 minutes
         sf::Event event; // event catcher to close window
         while (window.pollEvent(event)) {
@@ -193,50 +195,56 @@ int main() {
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
                 window.close();
             }
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
+                pause = (pause) ? false : true; // toggle pause state
+            }
         }
 
-        // check if fuel is available
-        if (currentFuelMass > 0) {
-            // calculating thrust
-            thrust = sqrt(2 * enginePower * currentEFMI);
+        if (!pause) {
 
-            exhaustVelocity = sqrt((2 * enginePower) / currentEFMI); // calculate exhaust velocity
+            // check if fuel is available
+            if (currentFuelMass > 0) {
+                // calculating thrust
+                thrust = sqrt(2 * enginePower * currentEFMI);
 
-            // Burn fuel
-            currentFuelMass -= currentEFMI * timeStep;
-            if (currentFuelMass < 0) {
-                break;
-                currentFuelMass += currentEFMI * timeStep;
-                currentEFMI = 0; // Stop engine if fuel runs out
-                thrust = 0;
+                exhaustVelocity = sqrt((2 * enginePower) / currentEFMI); // calculate exhaust velocity
+
+                // Burn fuel
+                currentFuelMass -= currentEFMI * timeStep;
+                if (currentFuelMass < 0) {
+                    break;
+                    currentFuelMass += currentEFMI * timeStep;
+                    currentEFMI = 0; // Stop engine if fuel runs out
+                    thrust = 0;
+                }
+
+                // Update rocket mass
+                currentRocketMass = currentFuelMass + rocketDryMass;
             }
 
-            // Update rocket mass
-            currentRocketMass = currentFuelMass + rocketDryMass;
-        }
+            // Correct net force calculation
+            netForce = thrust
+                - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2))
+                + ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2));
 
-        // Correct net force calculation
-        netForce = thrust
-            - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2))
-            + ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2));
+            // Acceleration update
+            acceleration = netForce / currentRocketMass;
+            // if acceleration is too high reduce fuel burn rate
+            if (acceleration >= 50 && currentEFMI > 1) {
+                currentEFMI -= 1;
+            }
 
-        // Acceleration update
-        acceleration = netForce / currentRocketMass;
-        // if acceleration is too high reduce fuel burn rate
-        if (acceleration >= 50 && currentEFMI > 1) {
-            currentEFMI -= 1;
-        }
+            // update rocket velocity and position
+            long double distanceInTimeStep = rocketVelocity * timeStep + 0.5 * acceleration * pow(timeStep, 2);
+            work += distanceInTimeStep * netForce;
+            rocketVelocity += acceleration * timeStep;
+            x += distanceInTimeStep;
+            timeExpended_1 += 1;
+            time_cost_1 += timeStep / distanceInTimeStep;
 
-        // update rocket velocity and position
-        long double distanceInTimeStep = rocketVelocity * timeStep + 0.5 * acceleration * pow(timeStep, 2);
-        work += distanceInTimeStep * netForce;
-        rocketVelocity += acceleration * timeStep;
-        x += distanceInTimeStep;
-        timeExpended_1 += 1;
-        time_cost_1 += timeStep / distanceInTimeStep;
-
-        if (count % 1000 == 0 && (write || write_liftoff)) {
-            writeDataToCSV(count / 1000, x, rocketVelocity);
+            if (count % 1000 == 0 && (write || write_liftoff)) {
+                writeDataToCSV(count / 1000, x, rocketVelocity);
+            }
         }
 
         if (visual) {
@@ -275,8 +283,8 @@ int main() {
                 window.display();
             }
         }
-
         count++;
+
     }
     // normalize timeExpended to seconds
     timeExpended_1 *= timeStep;
