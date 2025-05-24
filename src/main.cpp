@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cmath>
 #include <sfml/Graphics.hpp>
+#include "rocket_data.h"
 
 bool visual = true; // Set to true for visual simulation,
 bool write = false; // set to true to write to CSV
@@ -23,6 +24,8 @@ void writeDataToCSV(double a, double b, double c) {
 }
 
 int main() {
+    VisualData VisualData;
+
     // data of planetary bodies
     const long double massEarth = 5.972e24; // kg
     const long double radiusEarth = 6.378e6; // meters
@@ -103,77 +106,11 @@ int main() {
     rocket.setTexture(&rocketTexture);
     rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, window.getSize().y - rocket.getSize().y); // Initial position of the rocket
 
-    // load font for displaying statistics
-    sf::Font font;
-    if (font.loadFromFile("assets/fonts/HomeVideo-BLG6G.ttf")) { // loading font
-        std::cout << "font loaded" << std::endl;
-    }
-    else {
-        std::cout << "font not loaded" << std::endl;
-    }
+    VisualData.load();
+
+    VisualData.initialize();
 
     // statistic text sfml initialization
-    sf::Text text_rocket_time;
-    sf::Text text_rocket_velocity;
-    sf::Text text_rocket_acceleration;
-    sf::Text text_rocket_fuel;
-    sf::Text text_rocket_displacement;
-    sf::Text text_rocket_cfmi;
-    sf::Text text_rocket_exhaust_velocity;
-    sf::Text text_simulation_gravity_earth;
-    sf::Text text_simulaiton_graivty_moon;
-    sf::Text text_simulation_phase;
-
-    text_rocket_time.setFont(font);
-    text_rocket_time.setCharacterSize(30);
-    text_rocket_time.setFillColor(sf::Color::White);
-    text_rocket_time.setPosition(10, 10); // Position of the text
-
-    text_rocket_velocity.setFont(font);
-    text_rocket_velocity.setCharacterSize(30);
-    text_rocket_velocity.setFillColor(sf::Color::White);
-    text_rocket_velocity.setPosition(10, 40);
-
-    text_rocket_acceleration.setFont(font);
-    text_rocket_acceleration.setCharacterSize(30);
-    text_rocket_acceleration.setFillColor(sf::Color::White);
-    text_rocket_acceleration.setPosition(10, 70); // Position of the text
-
-    text_rocket_fuel.setFont(font);
-    text_rocket_fuel.setCharacterSize(30);
-    text_rocket_fuel.setFillColor(sf::Color::White);
-    text_rocket_fuel.setPosition(10, 100); // Position of the text
-
-    text_rocket_displacement.setFont(font);
-    text_rocket_displacement.setCharacterSize(30);
-    text_rocket_displacement.setFillColor(sf::Color::White);
-    text_rocket_displacement.setPosition(10, 130); // Position of the text
-
-    text_rocket_cfmi.setFont(font);
-    text_rocket_cfmi.setCharacterSize(30);
-    text_rocket_cfmi.setFillColor(sf::Color::White);
-    text_rocket_cfmi.setPosition(10, 160); // Position of the text
-
-    text_rocket_exhaust_velocity.setFont(font);
-    text_rocket_exhaust_velocity.setCharacterSize(30);
-    text_rocket_exhaust_velocity.setFillColor(sf::Color::White);
-    text_rocket_exhaust_velocity.setPosition(10, 190);
-
-    text_simulation_gravity_earth.setFont(font);
-    text_simulation_gravity_earth.setCharacterSize(30);
-    text_simulation_gravity_earth.setFillColor(sf::Color::White);
-    text_simulation_gravity_earth.setPosition(10, 220);
-
-    text_simulaiton_graivty_moon.setFont(font);
-    text_simulaiton_graivty_moon.setCharacterSize(30);
-    text_simulaiton_graivty_moon.setFillColor(sf::Color::White);
-    text_simulaiton_graivty_moon.setPosition(10, 250);
-
-    text_simulation_phase.setFont(font);
-    text_simulation_phase.setCharacterSize(30);
-    text_simulation_phase.setFillColor(sf::Color::White);
-    text_simulation_phase.setPosition(10, 280);
-
 
     int count = 0; // counter for simulation steps
     double work = 0; // cost of the simulation
@@ -253,30 +190,12 @@ int main() {
 
                 // Update
                 rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / 2200000))); // Initial position of the rocket
-                text_rocket_time.setString("Rocket Time: " + std::to_string(timeExpended_1 * timeStep) + " seconds");
-                text_rocket_velocity.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
-                text_rocket_acceleration.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
-                text_rocket_fuel.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
-                text_rocket_displacement.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
-                text_rocket_cfmi.setString("Current Fuel Mass Input: " + std::to_string(currentEFMI));
-                text_rocket_exhaust_velocity.setString("Rocket Exhaust Velocity: " + std::to_string(exhaustVelocity) + " m/s");
-                text_simulation_gravity_earth.setString("Earth Gravity: " + std::to_string((G * massEarth) / pow((radiusEarth + x), 2)) + " m/s^2");
-                text_simulaiton_graivty_moon.setString("Moon Gravity: " + std::to_string((G * massMoon) / pow((radiusMoon + d - x), 2)) + " m/s^2");
-                text_simulation_phase.setString("Liftoff!");
+                VisualData.update(sf::seconds(timeExpended_1 * timeStep), rocketVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((G * massEarth) / pow((radiusEarth + x), 2)), ((G * massMoon) / pow((radiusMoon + d - x), 2)), "Liftoff!");
 
                 // draw
                 window.draw(backgroundSprite); // Draw the background
-                window.draw(text_simulation_phase); // Draw the text_simulation_phase text
-                window.draw(text_rocket_velocity); // Draw the rocket speed text
-                window.draw(text_rocket_acceleration); // Draw the rocket acceleration text
-                window.draw(text_rocket_fuel); // Draw the rocket fuel text
-                window.draw(text_rocket_time); // Draw the rocket time text
-                window.draw(text_rocket_displacement); // Draw the rocket distance text
-                window.draw(text_rocket_cfmi);
-                window.draw(text_rocket_exhaust_velocity); // Draw the rocket exhaust velocity text
-                window.draw(text_simulation_gravity_earth); // Draw the earth gravity text
-                window.draw(text_simulaiton_graivty_moon); // Draw the moon gravity text
                 window.draw(rocket);
+                VisualData.draw(window); // Draw the visual data
                 // sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
 
 
@@ -327,6 +246,7 @@ int main() {
     double cruiseVelocity = rocketVelocity;
     double distanceToCruise = d - x; // Distance to cruise
     double distanceCruised = 0;
+    currentEFMI = 0; // No fuel burn rate during cruise
 
     count = 0;
     double timeExpended_2 = 0;
@@ -371,25 +291,11 @@ int main() {
                 window.clear();
 
                 rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / d))); // Initial position of the rocket
-                text_rocket_time.setString("Rocket Time: " + std::to_string(timeExpended_1 + timeExpended_2 * timeStep) + " seconds");
-                text_rocket_velocity.setString("Rocket Speed: " + std::to_string(cruiseVelocity) + " m/s");
-                text_rocket_acceleration.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
-                text_rocket_fuel.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
-                text_rocket_displacement.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
-                text_simulation_gravity_earth.setString("Earth Gravity: " + std::to_string((G * massEarth) / pow((radiusEarth + x), 2)) + " m/s^2");
-                text_simulaiton_graivty_moon.setString("Moon Gravity: " + std::to_string((G * massMoon) / pow((radiusMoon + d - x), 2)) + " m/s^2");
-                text_simulation_phase.setString("Cruiseing!");
+                VisualData.update(sf::seconds(timeExpended_2 * timeStep), cruiseVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((G * massEarth) / pow((radiusEarth + x), 2)), ((G * massMoon) / pow((radiusMoon + d - x), 2)), "Cruising!");
 
                 window.draw(backgroundSprite); // Draw the background
-                window.draw(text_simulation_phase); // Draw the text_simulation_phase text
-                window.draw(text_rocket_velocity); // Draw the rocket speed text
-                window.draw(text_rocket_acceleration); // Draw the rocket acceleration text
-                window.draw(text_rocket_fuel); // Draw the rocket fuel text
-                window.draw(text_rocket_time); // Draw the rocket time text
-                window.draw(text_rocket_displacement); // Draw the rocket distance text
-                window.draw(text_simulation_gravity_earth); // Draw the earth gravity text
-                window.draw(text_simulaiton_graivty_moon); // Draw the moon gravity text
                 window.draw(rocket);
+                VisualData.draw(window); // Draw the visual data
                 // sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
 
                 window.display();
@@ -510,29 +416,12 @@ int main() {
                 window.clear();
 
                 rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
-                text_rocket_time.setString("Rocket Time: " + std::to_string(timeExpended_1 + timeExpended_2 + timeExpended_3 * timeStep) + " seconds");
-                text_rocket_velocity.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
-                text_rocket_acceleration.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
-                text_rocket_fuel.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
-                text_rocket_displacement.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
-                text_rocket_cfmi.setString("Current Fuel Mass Input: " + std::to_string(currentEFMI));
-                text_rocket_exhaust_velocity.setString("Rocket Exhaust Velocity: " + std::to_string(exhaustVelocity) + " m/s");
-                text_simulation_gravity_earth.setString("Earth Gravity: " + std::to_string((G * massEarth) / pow((radiusEarth + x), 2)) + " m/s^2");
-                text_simulaiton_graivty_moon.setString("Moon Gravity: " + std::to_string((G * massMoon) / pow((radiusMoon + d - x), 2)) + " m/s^2");
-                text_simulation_phase.setString("Decelerating!");
+
+                VisualData.update(sf::seconds(timeExpended_1 + timeExpended_2 + timeExpended_3 * timeStep), rocketVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((G * massEarth) / pow((radiusEarth + x), 2)), ((G * massMoon) / pow((radiusMoon + d - x), 2)), "Decelerating!");
 
                 window.draw(backgroundSprite); // Draw the background
-                window.draw(text_simulation_phase); // Draw the text_simulation_phase text
-                window.draw(text_rocket_velocity); // Draw the rocket speed text
-                window.draw(text_rocket_acceleration); // Draw the rocket acceleration text
-                window.draw(text_rocket_fuel); // Draw the rocket fuel text
-                window.draw(text_rocket_time); // Draw the rocket time text
-                window.draw(text_rocket_displacement); // Draw the rocket distance text
-                window.draw(text_rocket_exhaust_velocity); // Draw the rocket exhaust velocity text
-                window.draw(text_rocket_cfmi);
-                window.draw(text_simulation_gravity_earth); // Draw the earth gravity text
-                window.draw(text_simulaiton_graivty_moon); // Draw the moon gravity text
                 window.draw(rocket);
+                VisualData.draw(window); // Draw the visual data
                 // sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
 
 
@@ -672,29 +561,12 @@ int main() {
                 window.clear();
 
                 rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
-                text_rocket_time.setString("Rocket Time: " + std::to_string(timeExpended_1 + timeExpended_2 + timeExpended_3 + timeExpended_4 * timeStep) + " seconds");
-                text_rocket_velocity.setString("Rocket Speed: " + std::to_string(rocketVelocity) + " m/s");
-                text_rocket_acceleration.setString("Rocket Acceleration: " + std::to_string(acceleration) + " m/s^2");
-                text_rocket_fuel.setString("Rocket Fuel: " + std::to_string(currentFuelMass) + " kg");
-                text_rocket_displacement.setString("Rocket Distance: " + std::to_string(x / 1e3) + " km");
-                text_rocket_cfmi.setString("Current Fuel Mass Input: " + std::to_string(currentEFMI));
-                text_rocket_exhaust_velocity.setString("Rocket Exhaust Velocity: " + std::to_string(exhaustVelocity) + " m/s");
-                text_simulation_gravity_earth.setString("Earth Gravity: " + std::to_string((G * massEarth) / pow((radiusEarth + x), 2)) + " m/s^2");
-                text_simulaiton_graivty_moon.setString("Moon Gravity: " + std::to_string((G * massMoon) / pow((radiusMoon + d - x), 2)) + " m/s^2");
-                text_simulation_phase.setString("Landing!");
+
+                VisualData.update(sf::seconds(timeExpended_1 + timeExpended_2 + timeExpended_3 + timeExpended_4 * timeStep), rocketVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((G * massEarth) / pow((radiusEarth + x), 2)), ((G * massMoon) / pow((radiusMoon + d - x), 2)), "Landing!");
 
                 window.draw(backgroundSprite); // Draw the background
                 window.draw(moonSprite); // Draw the moon overlay
-                window.draw(text_simulation_phase); // Draw the text_simulation_phase text
-                window.draw(text_rocket_velocity); // Draw the rocket speed text
-                window.draw(text_rocket_acceleration); // Draw the rocket acceleration text
-                window.draw(text_rocket_fuel); // Draw the rocket fuel text
-                window.draw(text_rocket_time); // Draw the rocket time text
-                window.draw(text_rocket_displacement); // Draw the rocket distance text
-                window.draw(text_rocket_cfmi);
-                window.draw(text_rocket_exhaust_velocity); // Draw the rocket exhaust velocity text
-                window.draw(text_simulation_gravity_earth); // Draw the earth gravity text
-                window.draw(text_simulaiton_graivty_moon); // Draw the moon gravity text
+                VisualData.draw(window); // Draw the visual data
                 window.draw(rocket);
                 // sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
 
