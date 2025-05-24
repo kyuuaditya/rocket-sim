@@ -3,6 +3,7 @@
 #include <cmath>
 #include <sfml/Graphics.hpp>
 #include "rocket_data.h"
+#include "constants.h" 
 
 bool visual = true; // Set to true for visual simulation,
 bool write = false; // set to true to write to CSV
@@ -25,23 +26,7 @@ void writeDataToCSV(double a, double b, double c) {
 
 int main() {
     VisualData VisualData;
-
-    // data of planetary bodies
-    const long double massEarth = 5.972e24; // kg
-    const long double radiusEarth = 6.378e6; // meters
-
-    const long double massSun = 1.989e30; // kg
-    const long double radiusSun = 6.963e8; // meters
-
-    const long double massMoon = 7.347e22; // kg
-    const long double radiusMoon = 1.737e6; // meters
-
-    const long double d = 3.844006e8 - radiusEarth - radiusMoon; // Distance between Earth & Moon minus their radii
-
-    const long double S = 1.496e11; // distance from earth to sun (centres)
-
-    // constants
-    const long double G = 6.674e-11; // gravitational constant
+    Constants Constants;
 
     // rocket data
     long double enginePower = 50.0e10; // watts
@@ -161,8 +146,8 @@ int main() {
 
             // Correct net force calculation
             netForce = thrust
-                - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2))
-                + ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2));
+                - ((Constants.GravitationalConstant * Constants.massEarth * currentRocketMass) / pow((Constants.radiusEarth + x), 2))
+                + ((Constants.GravitationalConstant * Constants.massMoon * currentRocketMass) / pow((Constants.radiusMoon + Constants.GapEarthMoon - x), 2));
 
             // Acceleration update
             acceleration = netForce / currentRocketMass;
@@ -190,7 +175,7 @@ int main() {
 
                 // Update
                 rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / 2200000))); // Initial position of the rocket
-                VisualData.update(sf::seconds(timeExpended_1 * timeStep), rocketVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((G * massEarth) / pow((radiusEarth + x), 2)), ((G * massMoon) / pow((radiusMoon + d - x), 2)), "Liftoff!");
+                VisualData.update(sf::seconds(timeExpended_1 * timeStep), rocketVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((Constants.GravitationalConstant * Constants.massEarth) / pow((Constants.radiusEarth + x), 2)), ((Constants.GravitationalConstant * Constants.massMoon) / pow((Constants.radiusMoon + Constants.GapEarthMoon - x), 2)), "Liftoff!");
 
                 // draw
                 window.draw(backgroundSprite); // Draw the background
@@ -216,7 +201,7 @@ int main() {
     std::cout << "Time: " << timeExpended_1 << " seconds\n";
     std::cout << "Final velocity: " << rocketVelocity << " m/s\n";
     std::cout << "Distance traveled: " << x / 1e3 << " km\n";
-    std::cout << "Distance Left: " << (d - x) / 1e3 << "km" << std::endl;
+    std::cout << "Distance Left: " << (Constants.GapEarthMoon - x) / 1e3 << "km" << std::endl;
     std::cout << "Current Rocket Mass: " << currentRocketMass << " kg\n";
     std::cout << "Fuel consumed: " << initialFuelMass - currentFuelMass << " kg " << "Fuel remaining: " << currentFuelMass << " kg\n";
     std::cout << "Fuel Cost: " << fuel_cost_1 << " Kg/j\n";
@@ -244,7 +229,7 @@ int main() {
 
     // initialize rocket statistics
     double cruiseVelocity = rocketVelocity;
-    double distanceToCruise = d - x; // Distance to cruise
+    double distanceToCruise = Constants.GapEarthMoon - x; // Distance to cruise
     double distanceCruised = 0;
     currentEFMI = 0; // No fuel burn rate during cruise
 
@@ -267,8 +252,8 @@ int main() {
 
         // calculating effects of gravity
         netForce =
-            ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2))
-            - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2));
+            ((Constants.GravitationalConstant * Constants.massMoon * currentRocketMass) / pow((Constants.radiusMoon + Constants.GapEarthMoon - x), 2))
+            - ((Constants.GravitationalConstant * Constants.massEarth * currentRocketMass) / pow((Constants.radiusEarth + x), 2));
 
         acceleration = netForce / currentRocketMass;
 
@@ -290,8 +275,8 @@ int main() {
             if (window.isOpen()) {
                 window.clear();
 
-                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / d))); // Initial position of the rocket
-                VisualData.update(sf::seconds(timeExpended_2 * timeStep), cruiseVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((G * massEarth) / pow((radiusEarth + x), 2)), ((G * massMoon) / pow((radiusMoon + d - x), 2)), "Cruising!");
+                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (x / Constants.GapEarthMoon))); // Initial position of the rocket
+                VisualData.update(sf::seconds(timeExpended_2 * timeStep), cruiseVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((Constants.GravitationalConstant * Constants.massEarth) / pow((Constants.radiusEarth + x), 2)), ((Constants.GravitationalConstant * Constants.massMoon) / pow((Constants.radiusMoon + Constants.GapEarthMoon - x), 2)), "Cruising!");
 
                 window.draw(backgroundSprite); // Draw the background
                 window.draw(rocket);
@@ -318,7 +303,7 @@ int main() {
     std::cout << "Cruise velocity: " << cruiseVelocity << " m/s\n";
     std::cout << "Distance traveled: " << distanceCruised / 1e3 << " km\n";
     std::cout << "Total Distance traveled: " << (x) / 1e3 << " km\n";
-    std::cout << "Distance Left: " << (d - x) / 1e3 << "km" << std::endl;
+    std::cout << "Distance Left: " << (Constants.GapEarthMoon - x) / 1e3 << "km" << std::endl;
     std::cout << "time cost: " << time_cost_2 << " s/km\n";
     double cost_cruise = time_cost_2;
 
@@ -334,7 +319,7 @@ int main() {
 
     // initialize rocket statistics
     rocketVelocity = cruiseVelocity; // Reset velocity to cruise velocity
-    double distancetoDecelerate = d - x; // Distance to decelerate
+    double distancetoDecelerate = Constants.GapEarthMoon - x; // Distance to decelerate
     double totalDistanceCovered = x;
     double distanceDecelerated = 0;
     thrust = 0;
@@ -383,8 +368,8 @@ int main() {
 
         // Net force calculation
         netForce = thrust
-            - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2))
-            + ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2));
+            - ((Constants.GravitationalConstant * Constants.massEarth * currentRocketMass) / pow((Constants.radiusEarth + x), 2))
+            + ((Constants.GravitationalConstant * Constants.massMoon * currentRocketMass) / pow((Constants.radiusMoon + Constants.GapEarthMoon - x), 2));
 
         acceleration = netForce / currentRocketMass;
 
@@ -415,9 +400,9 @@ int main() {
             if (visual) {
                 window.clear();
 
-                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
+                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (Constants.GapEarthMoon - totalDistanceCovered))); // Initial position of the rocket
 
-                VisualData.update(sf::seconds(timeExpended_1 + timeExpended_2 + timeExpended_3 * timeStep), rocketVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((G * massEarth) / pow((radiusEarth + x), 2)), ((G * massMoon) / pow((radiusMoon + d - x), 2)), "Decelerating!");
+                VisualData.update(sf::seconds(timeExpended_1 + timeExpended_2 + timeExpended_3 * timeStep), rocketVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((Constants.GravitationalConstant * Constants.massEarth) / pow((Constants.radiusEarth + x), 2)), ((Constants.GravitationalConstant * Constants.massMoon) / pow((Constants.radiusMoon + Constants.GapEarthMoon - x), 2)), "Decelerating!");
 
                 window.draw(backgroundSprite); // Draw the background
                 window.draw(rocket);
@@ -450,7 +435,7 @@ int main() {
     std::cout << "Distance traveled: " << distanceDecelerated / 1e3 << " km\n";
     std::cout << "Total Distance traveled: " << (x) / 1e3 << " km\n";
     std::cout << "Fuel consumed: " << initialFuelMass - currentFuelMass << " kg " << "Fuel remaining: " << currentFuelMass << " kg\n";
-    std::cout << "Distance Left: " << (d - x) << "m\n";
+    std::cout << "Distance Left: " << (Constants.GapEarthMoon - x) << "m\n";
     std::cout << "time cost: " << time_cost_3 << " s/km\n";
     std::cout << "Fuel Cost: " << fuel_cost_3 << " Kg/j\n";
     std::cout << "Cost of the simulation: " << cost_decelerate << std::endl;
@@ -458,7 +443,7 @@ int main() {
     enginePower = 1e10; // watts
 
     // initialize rocket statistics
-    distancetoDecelerate = d - x;
+    distancetoDecelerate = Constants.GapEarthMoon - x;
     totalDistanceCovered = x;
     currentEFMI = 0;
     thrust = 0;
@@ -475,7 +460,7 @@ int main() {
 
     timeStep = 0.001; // in seconds
 
-    while (distancetoDecelerate - landing_range > distanceDecelerated && x < d && landing_phrase && rocketStatus) {
+    while (distancetoDecelerate - landing_range > distanceDecelerated && x < Constants.GapEarthMoon && landing_phrase && rocketStatus) {
         if (count * timeStep > 100) { // 100 seconds allowed for landing
             break;
         }
@@ -511,8 +496,8 @@ int main() {
 
         // Correct net force calculation
         netForce = thrust
-            - ((G * massEarth * currentRocketMass) / pow((radiusEarth + x), 2))
-            + ((G * massMoon * currentRocketMass) / pow((radiusMoon + d - x), 2));
+            - ((Constants.GravitationalConstant * Constants.massEarth * currentRocketMass) / pow((Constants.radiusEarth + x), 2))
+            + ((Constants.GravitationalConstant * Constants.massMoon * currentRocketMass) / pow((Constants.radiusMoon + Constants.GapEarthMoon - x), 2));
 
         // Acceleration update
         acceleration = netForce / currentRocketMass;
@@ -560,9 +545,9 @@ int main() {
             if (window.isOpen()) {
                 window.clear();
 
-                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (d - totalDistanceCovered))); // Initial position of the rocket
+                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((x - totalDistanceCovered) / (Constants.GapEarthMoon - totalDistanceCovered))); // Initial position of the rocket
 
-                VisualData.update(sf::seconds(timeExpended_1 + timeExpended_2 + timeExpended_3 + timeExpended_4 * timeStep), rocketVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((G * massEarth) / pow((radiusEarth + x), 2)), ((G * massMoon) / pow((radiusMoon + d - x), 2)), "Landing!");
+                VisualData.update(sf::seconds(timeExpended_1 + timeExpended_2 + timeExpended_3 + timeExpended_4 * timeStep), rocketVelocity, acceleration, currentFuelMass, x, currentEFMI, exhaustVelocity, ((Constants.GravitationalConstant * Constants.massEarth) / pow((Constants.radiusEarth + x), 2)), ((Constants.GravitationalConstant * Constants.massMoon) / pow((Constants.radiusMoon + Constants.GapEarthMoon - x), 2)), "Landing!");
 
                 window.draw(backgroundSprite); // Draw the background
                 window.draw(moonSprite); // Draw the moon overlay
@@ -594,7 +579,7 @@ int main() {
     std::cout << "Distance traveled: " << distanceDecelerated / 1e3 << " km\n";
     std::cout << "Total Distance traveled: " << (x) / 1e3 << " km\n";
     std::cout << "Fuel consumed: " << initialFuelMass - currentFuelMass << " kg " << "Fuel remaining: " << currentFuelMass << " kg\n";
-    std::cout << "Distance Left: " << (d - x) << "m" << std::endl;
+    std::cout << "Distance Left: " << (Constants.GapEarthMoon - x) << "m" << std::endl;
     std::cout << "time cost: " << time_cost_4 << " s/km\n";
     std::cout << "Fuel Cost: " << fuel_cost_4 << " Kg/j\n";
     std::cout << "Cost of the simulation: " << cost_landing << std::endl;
