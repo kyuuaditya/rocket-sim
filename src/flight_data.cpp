@@ -1,5 +1,5 @@
 #include <iostream>
-#include "rocket_data.h"
+#include "flight_data.h"
 #include <sfml/Graphics.hpp>
 
 void VisualData::load() {
