@@ -1,34 +1,23 @@
 #include <iostream>
-#include <fstream>
 #include <cmath>
 #include <sfml/Graphics.hpp>
 #include "flight_data.h"
 #include "constants.h" 
 #include "rocket.h"
+#include "print_data.h"
+#include "graphics.h"
 
 bool visual = true; // Set to true for visual simulation,
 bool write = false; // set to true to write to CSV
-bool write_liftoff = false;
-double target_velocity = 16754;
+double target_velocity = 16000;
 double braking_distance_s3 = 2000 * 1e3; // 2000 km
-
-// Function to write data to a CSV file
-std::ofstream file("filename.csv");
-void writeDataToCSV(double a, double b, double c) {
-    if (write || write_liftoff) {
-        if (file.is_open()) {
-            file << a << " " << b << " " << c << "\n";
-        }
-        else {
-            std::cerr << "Failed to open file" << std::endl;
-        }
-    }
-}
 
 int main() {
     VisualData VisualData;
     Constants Constants;
     Rocket Rocket;
+    printData printData;
+    Graphics Graphics;
 
     // time step for simulation
     long double timeStep = 0.001; // in seconds
@@ -36,47 +25,11 @@ int main() {
     // create the window for the simulation
     sf::RenderWindow window(sf::VideoMode(1920, 1080), "simulation", sf::Style::None);
 
-    // Load background texture
-    sf::Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("assets/background/9999c.png")) { // Replace with your image path
-        std::cerr << "Failed to load background image." << std::endl;
-        return -1;
-    }
-
-    // Create a sprite for the background
-    sf::Sprite backgroundSprite;
-    backgroundSprite.setTexture(backgroundTexture);
-
-    // Load moon overlay texture
-    sf::Texture moonTexture;
-    if (!moonTexture.loadFromFile("assets/texture/moon_overlay.png")) { // Replace with your image path
-        std::cerr << "Failed to load moon image." << std::endl;
-        return -1;
-    }
-
-    // Create a sprite for the background
-    sf::Sprite moonSprite;
-    moonSprite.setTexture(moonTexture);
-
-    // rocket representation
-    sf::RectangleShape rocket(sf::Vector2f(64, 64)); // Rocket representation
-
-    // Load rocket texture
-    sf::Texture rocketTexture;
-    if (!rocketTexture.loadFromFile("assets/texture/rocket.png")) { // Replace with your rocket image path
-        std::cerr << "Failed to load rocket image" << std::endl;
-        return -1;
-    }
-
-    // Set the texture for the rocket sprite
-    rocket.setTexture(&rocketTexture);
-    rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, window.getSize().y - rocket.getSize().y); // Initial position of the rocket
+    Graphics.load(0);
+    Graphics.initialize(window); // Initialize graphics with the window
 
     VisualData.load();
-
     VisualData.initialize();
-
-    // statistic text sfml initialization
 
     int count = 0; // counter for simulation steps
     double work = 0; // cost of the simulation
@@ -84,9 +37,7 @@ int main() {
     double fuelEfficiencyConstant = 1; // fuel efficiency of the simulation
     double time_cost_1 = 0;
 
-    bool pause = false;
-
-    // sf::sleep(sf::seconds(10)); // Sleep for 1 second to allow the user to see the initial state
+    bool is_game_paused = false;
 
     // -------------------------------------------------------------- Stage 1 ----------------------------------------------------------
     while (Rocket.rocketVelocity < target_velocity) { // Run for 5 minutes
@@ -99,12 +50,11 @@ int main() {
                 window.close();
             }
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
-                pause = (pause) ? false : true; // toggle pause state
+                is_game_paused = (is_game_paused) ? false : true; // toggle is_game_paused state
             }
         }
 
-        if (!pause) {
-
+        if (!is_game_paused) {
             // check if fuel is available
             if (Rocket.currentFuelMass > 0) {
                 // calculating Rocket.thrust
@@ -145,8 +95,8 @@ int main() {
             Rocket.timeExpended_1 += 1;
             time_cost_1 += timeStep / distanceInTimeStep;
 
-            if (count % 1000 == 0 && (write || write_liftoff)) {
-                writeDataToCSV(count / 1000, Rocket.netDisplacement, Rocket.rocketVelocity);
+            if (count % 1000 == 0 && (write)) {
+                printData.writeDataToCSV(count / 1000, Rocket.netDisplacement, Rocket.rocketVelocity, write);
             }
         }
 
@@ -154,16 +104,11 @@ int main() {
             if (count % 20 == 0 && window.isOpen()) { // Update every 20 instances for smoother animation
                 window.clear();
 
-                // Update
-                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (Rocket.netDisplacement / 2200000))); // Initial position of the rocket
+                Graphics.update(window, Rocket.netDisplacement, 0, Constants.GapEarthMoon); // Update the rocket's position based on its current state
                 VisualData.update(sf::seconds(Rocket.timeExpended_1 * timeStep), Rocket.rocketVelocity, Rocket.acceleration, Rocket.currentFuelMass, Rocket.netDisplacement, Rocket.currentEFMI, Rocket.exhaustVelocity, ((Constants.GravitationalConstant * Constants.massEarth) / pow((Constants.radiusEarth + Rocket.netDisplacement), 2)), ((Constants.GravitationalConstant * Constants.massMoon) / pow((Constants.radiusMoon + Constants.GapEarthMoon - Rocket.netDisplacement), 2)), "Liftoff!");
 
-                // draw
-                window.draw(backgroundSprite); // Draw the background
-                window.draw(rocket);
+                Graphics.draw(window, 0); // Draw the graphics
                 VisualData.draw(window); // Draw the visual data
-                // sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
-
 
                 window.display();
             }
@@ -190,23 +135,8 @@ int main() {
     std::cout << "Cost of the simulation: " << cost_liftoff << std::endl;
 
     // -------------------------------------------------------------- State 2 ----------------------------------------------------------
-    // Load background texture
-    if (!backgroundTexture.loadFromFile("assets/background/123.png")) { // Replace with your image path
-        std::cerr << "Failed to load background image." << std::endl;
-        return -1;
-    }
 
-    // update the sprite for the background
-    backgroundSprite.setTexture(backgroundTexture);
-
-    // update rocket sprite
-    if (!rocketTexture.loadFromFile("assets/texture/rocket_noflame.png")) { // Replace with your rocket image path
-        std::cerr << "Failed to load rocket image" << std::endl;
-        return -1;
-    }
-
-    // Set the texture for the rocket sprite
-    rocket.setTexture(&rocketTexture);
+    Graphics.load(1);
 
     // initialize rocket statistics
     double cruiseVelocity = Rocket.rocketVelocity;
@@ -248,7 +178,7 @@ int main() {
         time_cost_2 += timeStep / distanceInTimeStep; // time cost for the simulation
 
         if (write) {
-            writeDataToCSV(count, Rocket.netDisplacement, cruiseVelocity);
+            printData.writeDataToCSV(count, Rocket.netDisplacement, cruiseVelocity, write);
         }
 
         if (visual) {
@@ -256,13 +186,11 @@ int main() {
             if (window.isOpen()) {
                 window.clear();
 
-                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * (1 - (Rocket.netDisplacement / Constants.GapEarthMoon))); // Initial position of the rocket
+                Graphics.update(window, Rocket.netDisplacement, 1, Constants.GapEarthMoon); // Update the rocket's position based on its current state
                 VisualData.update(sf::seconds(timeExpended_2 * timeStep), cruiseVelocity, Rocket.acceleration, Rocket.currentFuelMass, Rocket.netDisplacement, Rocket.currentEFMI, Rocket.exhaustVelocity, ((Constants.GravitationalConstant * Constants.massEarth) / pow((Constants.radiusEarth + Rocket.netDisplacement), 2)), ((Constants.GravitationalConstant * Constants.massMoon) / pow((Constants.radiusMoon + Constants.GapEarthMoon - Rocket.netDisplacement), 2)), "Cruising!");
 
-                window.draw(backgroundSprite); // Draw the background
-                window.draw(rocket);
+                Graphics.draw(window, 1); // Draw the graphics
                 VisualData.draw(window); // Draw the visual data
-                // sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
 
                 window.display();
             }
@@ -289,14 +217,8 @@ int main() {
     double cost_cruise = time_cost_2;
 
     // -------------------------------------------------------------- State 3 ----------------------------------------------------------
-    // update rocket sprite
-    if (!rocketTexture.loadFromFile("assets/texture/rocket.png")) { // Replace with your rocket image path
-        std::cerr << "Failed to load rocket image" << std::endl;
-        return -1;
-    }
 
-    // Set the texture for the rocket sprite
-    rocket.setTexture(&rocketTexture);
+    Graphics.load(2);
 
     // initialize rocket statistics
     Rocket.rocketVelocity = cruiseVelocity; // Reset velocity to cruise velocity
@@ -374,22 +296,18 @@ int main() {
 
 
         if (count % 1000 == 0 && write) {
-            writeDataToCSV(count / 1000, Rocket.netDisplacement, Rocket.rocketVelocity);
+            printData.writeDataToCSV(count / 1000, Rocket.netDisplacement, Rocket.rocketVelocity, write);
         }
 
         if (count % 10 == 0) {
             if (visual) {
                 window.clear();
 
-                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((Rocket.netDisplacement - totalDistanceCovered) / (Constants.GapEarthMoon - totalDistanceCovered))); // Initial position of the rocket
-
+                Graphics.update(window, Rocket.netDisplacement, 2, Constants.GapEarthMoon, totalDistanceCovered); // Update the rocket's position based on its current state
                 VisualData.update(sf::seconds(Rocket.timeExpended_1 + timeExpended_2 + timeExpended_3 * timeStep), Rocket.rocketVelocity, Rocket.acceleration, Rocket.currentFuelMass, Rocket.netDisplacement, Rocket.currentEFMI, Rocket.exhaustVelocity, ((Constants.GravitationalConstant * Constants.massEarth) / pow((Constants.radiusEarth + Rocket.netDisplacement), 2)), ((Constants.GravitationalConstant * Constants.massMoon) / pow((Constants.radiusMoon + Constants.GapEarthMoon - Rocket.netDisplacement), 2)), "Decelerating!");
 
-                window.draw(backgroundSprite); // Draw the background
-                window.draw(rocket);
+                Graphics.draw(window, 2); // Draw the graphics
                 VisualData.draw(window); // Draw the visual data
-                // sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
-
 
                 window.display();
             }
@@ -508,33 +426,22 @@ int main() {
             Rocket.currentEFMI = 0; // Stop engine if fuel runs out
             Rocket.thrust = 0;
             landing_phrase = false;
-            // update rocket sprite
-            if (!rocketTexture.loadFromFile("assets/texture/rocket_noflame.png")) { // Replace with your rocket image path
-                std::cerr << "Failed to load rocket image" << std::endl;
-                return -1;
-            }
-
-            // Set the texture for the rocket sprite
-            rocket.setTexture(&rocketTexture);
+            Graphics.load(3); // Load the landing graphics
         }
 
         if (count % 1000 == 0 && write) {
-            writeDataToCSV(count / 1000, Rocket.netDisplacement, Rocket.rocketVelocity);
+            printData.writeDataToCSV(count / 1000, Rocket.netDisplacement, Rocket.rocketVelocity, write);
         }
 
         if (visual) {
             if (window.isOpen()) {
                 window.clear();
 
-                rocket.setPosition(window.getSize().x / 2 - rocket.getSize().x / 2, (window.getSize().y - rocket.getSize().y) * ((Rocket.netDisplacement - totalDistanceCovered) / (Constants.GapEarthMoon - totalDistanceCovered))); // Initial position of the rocket
-
+                Graphics.update(window, Rocket.netDisplacement, 3, Constants.GapEarthMoon, totalDistanceCovered); // Update the rocket's position based on its current state
                 VisualData.update(sf::seconds(Rocket.timeExpended_1 + timeExpended_2 + timeExpended_3 + timeExpended_4 * timeStep), Rocket.rocketVelocity, Rocket.acceleration, Rocket.currentFuelMass, Rocket.netDisplacement, Rocket.currentEFMI, Rocket.exhaustVelocity, ((Constants.GravitationalConstant * Constants.massEarth) / pow((Constants.radiusEarth + Rocket.netDisplacement), 2)), ((Constants.GravitationalConstant * Constants.massMoon) / pow((Constants.radiusMoon + Constants.GapEarthMoon - Rocket.netDisplacement), 2)), "Landing!");
 
-                window.draw(backgroundSprite); // Draw the background
-                window.draw(moonSprite); // Draw the moon overlay
+                Graphics.draw(window, 3); // Draw the graphics
                 VisualData.draw(window); // Draw the visual data
-                window.draw(rocket);
-                // sf::sleep(sf::milliseconds(1)); // Sleep for 1 millisecond to control the frame rate
 
                 window.display();
             }
