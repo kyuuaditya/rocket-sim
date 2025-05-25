@@ -124,15 +124,7 @@ int main() {
     double cost_liftoff = time_cost_1 * timeEfficiencyConstant + fuel_cost_1 * fuelEfficiencyConstant + time_cost_1 * fuel_cost_1; // cost of the simulation
 
     std::cout << "------------------------------------------------Stage 1 Complete----------------------------------------------" << std::endl;
-    std::cout << "Time: " << Rocket.timeExpended_1 << " seconds\n";
-    std::cout << "Final velocity: " << Rocket.rocketVelocity << " m/s\n";
-    std::cout << "Distance traveled: " << Rocket.netDisplacement / 1e3 << " km\n";
-    std::cout << "Distance Left: " << (Constants.GapEarthMoon - Rocket.netDisplacement) / 1e3 << "km" << std::endl;
-    std::cout << "Current Rocket Mass: " << Rocket.currentRocketMass << " kg\n";
-    std::cout << "Fuel consumed: " << Rocket.initialFuelMass - Rocket.currentFuelMass << " kg " << "Fuel remaining: " << Rocket.currentFuelMass << " kg\n";
-    std::cout << "Fuel Cost: " << fuel_cost_1 << " Kg/j\n";
-    std::cout << "Time Cost: " << time_cost_1 << " s/km\n";
-    std::cout << "Cost of the simulation: " << cost_liftoff << std::endl;
+    printData.print_to_terminal(0, Rocket.timeExpended_1, Rocket.rocketVelocity, Rocket.netDisplacement, Constants.GapEarthMoon, Rocket.currentRocketMass, Rocket.initialFuelMass, Rocket.currentFuelMass);
 
     // -------------------------------------------------------------- State 2 ----------------------------------------------------------
 
@@ -208,12 +200,7 @@ int main() {
 
 
     std::cout << "------------------------------------------------Stage 2 Complete----------------------------------------------" << std::endl;
-    std::cout << "Time: " << timeExpended_2 << " seconds\n";
-    std::cout << "Cruise velocity: " << cruiseVelocity << " m/s\n";
-    std::cout << "Distance traveled: " << distanceCruised / 1e3 << " km\n";
-    std::cout << "Total Distance traveled: " << (Rocket.netDisplacement) / 1e3 << " km\n";
-    std::cout << "Distance Left: " << (Constants.GapEarthMoon - Rocket.netDisplacement) / 1e3 << "km" << std::endl;
-    std::cout << "time cost: " << time_cost_2 << " s/km\n";
+    printData.print_to_terminal(1, timeExpended_2, cruiseVelocity, Rocket.netDisplacement, Constants.GapEarthMoon, Rocket.currentRocketMass, Rocket.initialFuelMass, Rocket.currentFuelMass, distanceCruised);
     double cost_cruise = time_cost_2;
 
     // -------------------------------------------------------------- State 3 ----------------------------------------------------------
@@ -329,15 +316,7 @@ int main() {
 
 
     std::cout << "------------------------------------------------Stage 3 Complete----------------------------------------------" << std::endl;
-    std::cout << "Time: " << timeExpended_3 << " seconds\n";
-    std::cout << "Cruise velocity: " << Rocket.rocketVelocity << " m/s\n";
-    std::cout << "Distance traveled: " << distanceDecelerated / 1e3 << " km\n";
-    std::cout << "Total Distance traveled: " << (Rocket.netDisplacement) / 1e3 << " km\n";
-    std::cout << "Fuel consumed: " << Rocket.initialFuelMass - Rocket.currentFuelMass << " kg " << "Fuel remaining: " << Rocket.currentFuelMass << " kg\n";
-    std::cout << "Distance Left: " << (Constants.GapEarthMoon - Rocket.netDisplacement) << "m\n";
-    std::cout << "time cost: " << time_cost_3 << " s/km\n";
-    std::cout << "Fuel Cost: " << fuel_cost_3 << " Kg/j\n";
-    std::cout << "Cost of the simulation: " << cost_decelerate << std::endl;
+    printData.print_to_terminal(2, Rocket.timeExpended_1 + timeExpended_2 + timeExpended_3, Rocket.rocketVelocity, Rocket.netDisplacement, Constants.GapEarthMoon, Rocket.currentRocketMass, Rocket.initialFuelMass, Rocket.currentFuelMass, distanceDecelerated);
     // -------------------------------------------------------------- State 4 ----------------------------------------------------------
     Rocket.enginePower = 1e10; // watts
 
@@ -462,15 +441,8 @@ int main() {
 
     timeExpended_4 *= timeStep; // normalize timeExpended to seconds
     std::cout << "------------------------------------------------Stage 4 Complete----------------------------------------------" << std::endl;
-    std::cout << "Time: " << timeExpended_4 << " seconds\n";
-    std::cout << "Cruise velocity: " << Rocket.rocketVelocity << " m/s\n";
-    std::cout << "Distance traveled: " << distanceDecelerated / 1e3 << " km\n";
-    std::cout << "Total Distance traveled: " << (Rocket.netDisplacement) / 1e3 << " km\n";
-    std::cout << "Fuel consumed: " << Rocket.initialFuelMass - Rocket.currentFuelMass << " kg " << "Fuel remaining: " << Rocket.currentFuelMass << " kg\n";
-    std::cout << "Distance Left: " << (Constants.GapEarthMoon - Rocket.netDisplacement) << "m" << std::endl;
-    std::cout << "time cost: " << time_cost_4 << " s/km\n";
-    std::cout << "Fuel Cost: " << fuel_cost_4 << " Kg/j\n";
-    std::cout << "Cost of the simulation: " << cost_landing << std::endl;
+    printData.print_to_terminal(3, Rocket.timeExpended_1 + timeExpended_2 + timeExpended_3 + timeExpended_4, Rocket.rocketVelocity, Rocket.netDisplacement, Constants.GapEarthMoon, Rocket.currentRocketMass, Rocket.initialFuelMass, Rocket.currentFuelMass, distanceDecelerated);
+
     std::cout << "------------------------------------------------stats----------------------------------------------\n" << std::endl;
     std::cout << "Total Time: " << Rocket.timeExpended_1 + timeExpended_2 + timeExpended_3 + timeExpended_4 << " seconds\n";
     std::cout << "Total Distance: " << (Rocket.netDisplacement) / 1e3 << " km\n";
