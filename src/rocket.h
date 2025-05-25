@@ -1,4 +1,5 @@
 #pragma once
+#include "constants.h"
 
 class Rocket {
 public:
@@ -18,11 +19,17 @@ public:
     long double netDisplacement = 0;
     long double rocketVelocity = 0;
     long double acceleration = 0;
-    long double timeExpended_1 = 0;
+    long double timeExpended_m = 0;
+    long double timeExpended_s = 0; // seconds
     long double exhaustVelocity = 0;
     long double thrust = 0;
     long double netForce = 0;
+    long double distanceCruised = 0;
+    long double distanceDecelerated = 0;
 
 private:
 
+public:
+    void rocketBurn(long double timeStep, int phase = 0);
+    void rocketMove(long double timeStep, int phase = 0);
 };
