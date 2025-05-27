@@ -299,7 +299,7 @@ int main() {
             if (window.isOpen()) {
                 window.clear();
 
-                Graphics.update(window, Rocket.netDisplacement, 3, Constants.GapEarthMoon, Rocket.netDisplacement); // Update the rocket's position based on its current state
+                Graphics.update(window, Rocket.netDisplacement, 3, Constants.GapEarthMoon, totalDistanceCovered); // Update the rocket's position based on its current state
                 VisualData.update(sf::seconds(Rocket.timeExpended_m * timeStep), Rocket.rocketVelocity, Rocket.acceleration, Rocket.currentFuelMass, Rocket.netDisplacement, Rocket.currentEFMI, Rocket.exhaustVelocity, ((Constants.GravitationalConstant * Constants.massEarth) / pow((Constants.radiusEarth + Rocket.netDisplacement), 2)), ((Constants.GravitationalConstant * Constants.massMoon) / pow((Constants.radiusMoon + Constants.GapEarthMoon - Rocket.netDisplacement), 2)), "Landing!");
 
                 Graphics.draw(window, 3); // Draw the graphics
