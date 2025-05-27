@@ -40,6 +40,12 @@ void Graphics::load(int phase) {
             std::cerr << "Failed to load rocket image" << std::endl;
         }
 
+        // Update background texture
+        if (!backgroundTexture.loadFromFile("assets/background/background_2.png")) { // Replace with your image path
+            std::cerr << "Failed to load background image." << std::endl;
+        }
+        backgroundSprite.setTexture(backgroundTexture);
+
         // Set the texture for the rocket sprite
         rocket.setTexture(&rocketTexture);
     }

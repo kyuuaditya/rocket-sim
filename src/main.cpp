@@ -250,11 +250,7 @@ int main() {
     count = 0;
 
     timeStep = 0.001; // in seconds
-    std::cout << (distancetoDecelerate - landing_range > Rocket.distanceDecelerated) << (Rocket.netDisplacement < Constants.GapEarthMoon) << landing_phrase << rocketStatus << std::endl;
     while (distancetoDecelerate - landing_range > Rocket.distanceDecelerated && Rocket.netDisplacement < Constants.GapEarthMoon && landing_phrase && rocketStatus) {
-        // if (count * timeStep > 100) { // 100 seconds allowed for landing
-        //     break;
-        // }
 
         sf::Event event; // event catcher to close window
         while (window.pollEvent(event)) {
