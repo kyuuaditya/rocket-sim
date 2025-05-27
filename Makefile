@@ -10,10 +10,10 @@ icon:
 	windres src/resource.rc -o src/resource.o
 
 link: 
-	g++ -I"C:\SFML-2.6.2\include" src/main.o src/flight_data.o src/graphics.o src/rocket.o src/resource.o -o app/app.exe -L"C:\SFML-2.6.2\lib" -lmingw32 -lsfml-graphics -lsfml-window -lsfml-system -lsfml-main 
+	g++ -I"C:\SFML-2.6.2\include" src/main.o src/flight_data.o src/graphics.o src/rocket.o src/resource.o -o app.exe -L"C:\SFML-2.6.2\lib" -lmingw32 -lsfml-graphics -lsfml-window -lsfml-system -lsfml-main 
 
 run:
-	./app/app.exe
+	./app.exe
 
 clean:
 	del /Q "src\*.o" 2>nul || exit 0
