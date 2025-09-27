@@ -107,7 +107,7 @@ Feel free to replace assets in the `assets/` folder to customize your simulation
 ## 🤝 Credits & Inspiration
 
 This simulation was created for my Applied Optimization group project and passion for game development. A great way to explore optimization, physics, and real-time rendering. </br>
-Special thanks to [Mohit Mahapatra](https://github.com/exocrat), [Swarnim Chavan](https://github.com/ghostofgen7), [Sarweshwar Pandey](https://github.com/sarweshwarpandey) for their contributions.
+Special thanks to [Mohit Mahapatra](https://github.com/exocrat), [Swarnim Chavan](https://github.com/Swarnim-Chavan), [Sarweshwar Pandey](https://github.com/sarweshwarpandey) for their contributions.
 
 **Made with ❤️ by Aditya**
 
